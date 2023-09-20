@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model et_event {
+  id         Int           @id @default(autoincrement())
+  type       et_event_type @default(marry)
+  bf         String?       @db.VarChar(4)
+  gf         String?       @db.VarChar(4)
+  husband    String?       @db.VarChar(4)
+  wife       String?       @db.VarChar(4)
+  startTime  String        @db.VarChar(16)
+  deleted    Boolean       @default(false)
+  createTime DateTime      @default(now()) @db.DateTime(0)
+  lastUpdate DateTime      @default(now()) @db.DateTime(0)
+
+  @@index([type], map: "type")
+}
+
+enum et_event_type {
+  marry
+  love
+  birthday
+  menses
+}
