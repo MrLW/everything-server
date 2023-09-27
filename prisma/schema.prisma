@@ -15,6 +15,8 @@ model et_event {
   husband    String?       @db.VarChar(4)
   wife       String?       @db.VarChar(4)
   startTime  String        @db.VarChar(16)
+  username   String?       @db.VarChar(4)
+  remark     String?       @db.VarChar(20)
   deleted    Boolean       @default(false)
   createTime DateTime      @default(now()) @db.DateTime(0)
   lastUpdate DateTime      @default(now()) @db.DateTime(0)
@@ -22,9 +24,58 @@ model et_event {
   @@index([type], map: "type")
 }
 
+model et_day_category {
+  id         Int                  @id @default(autoincrement())
+  type       et_day_category_type @default(menses)
+  className  String               @db.VarChar(64)
+  name       String               @db.VarChar(64)
+  createTime DateTime             @default(now()) @db.Timestamp(0)
+}
+
+model et_day_love_moment {
+  id         Int      @id @default(autoincrement())
+  title      String   @db.VarChar(64)
+  content    String   @db.Text
+  loves      Int      @default(0)
+  stars      Int      @default(0)
+  userId     Int      @default(1)
+  images     String   @db.Text
+  public     Boolean  @default(false)
+  createTime DateTime @default(now()) @db.Timestamp(0)
+}
+
+model et_day_love_moment_love_mapping {
+  id         Int                                  @id @default(autoincrement())
+  userId     Int
+  momentId   Int
+  type       et_day_love_moment_love_mapping_type @default(love)
+  createTime DateTime                             @default(now()) @db.Timestamp(0)
+}
+
+model et_day_love_moment_comment {
+  id         Int      @id @default(autoincrement())
+  content    String   @db.Text
+  userId     Int
+  momentId   Int
+  createTime DateTime @default(now()) @db.Timestamp(0)
+}
+
 enum et_event_type {
   marry
   love
   birthday
   menses
+}
+
+enum et_day_category_type {
+  menses
+  love
+  marry
+  birthday
+  deathday
+}
+
+enum et_day_love_moment_love_mapping_type {
+  love
+  star
 }
