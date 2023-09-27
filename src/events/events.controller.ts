@@ -17,6 +17,11 @@ export class EventsController {
     return this.eventsService.findAll();
   }
 
+  @Get('menses')
+  findMenses() {
+    return this.eventsService.findMenses()
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.eventsService.findOne(+id);
@@ -29,7 +34,8 @@ export class EventsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    Logger.log("remove：：：：：：：：：：：：", id);
     return this.eventsService.remove(+id);
   }
+
+  
 }

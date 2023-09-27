@@ -3,12 +3,12 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PrismaService } from 'src/prisma.service';
 import * as dayjs from 'dayjs'
-import { classNameMap, eventTypeMap } from 'src/common';
+import { RecordDayCategoryService } from 'src/record-day-category/record-day-category.service';
 
 @Injectable()
 export class EventsService {
 
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService, private categoryService: RecordDayCategoryService) { }
 
   async create(createEventDto: CreateEventDto) {
     const res = await this.prisma.et_event.create({ data: createEventDto })
@@ -16,11 +16,12 @@ export class EventsService {
   }
 
   async findAll() {
+    const categoryMap = await this.categoryService.getCategoryMap()
     // 先排序, 再分组
-    const eventList: any = await this.prisma.$queryRaw`select * from (select * from et_event order by createTime desc limit 1000 ) tmp GROUP BY type`
+    const eventList: any = await this.prisma.$queryRaw`select * from (select * from et_event where deleted = 0 order by createTime desc limit 1000 ) tmp GROUP BY type`
     for(let item of eventList){
-      item['className'] = classNameMap[item.type]
-      item['name'] = eventTypeMap[item.type]
+      item['className'] = categoryMap[item.type].className;
+      item['name'] = categoryMap[item.type].name;
       item['diffDays'] = dayjs().diff(item.startTime, 'day');
     }
     return eventList;
@@ -36,5 +37,12 @@ export class EventsService {
 
   remove(id: number) {
     return this.prisma.et_event.update({ where: { id }, data: { deleted: true } })
+  }
+
+  /**
+   *  获取所有的姨妈日期
+   */
+  async findMenses(){
+    return this.prisma.et_event.findMany({ where: { type: 'menses' }, select: { id: true, type: true, startTime: true } })
   }
 }

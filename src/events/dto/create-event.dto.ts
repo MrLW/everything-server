@@ -5,4 +5,5 @@ export class CreateEventDto {
     gf?: string;
     husband?: string;
     wife?: string;
+    username?: string;
 }
