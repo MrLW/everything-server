@@ -60,6 +60,33 @@ model et_day_love_moment_comment {
   createTime DateTime @default(now()) @db.Timestamp(0)
 }
 
+model et_user {
+  id         Int      @id @default(autoincrement())
+  username   String   @default("") @db.VarChar(16)
+  avatarUrl  String   @default("") @db.VarChar(256)
+  sex        Int      @default(0)
+  openid     String   @default("") @db.VarChar(64)
+  country    String   @default("") @db.VarChar(16)
+  province   String   @default("") @db.VarChar(16)
+  city       String   @default("") @db.VarChar(16)
+  exps       Int      @default(0)
+  loves      Int      @default(0)
+  subs       Int      @default(0)
+  createTime DateTime @default(now()) @db.Timestamp(0)
+}
+
+model et_user_copy1 {
+  id         Int      @id @default(autoincrement())
+  username   String   @db.VarChar(16)
+  avatarUrl  String   @db.VarChar(256)
+  sex        Int      @default(0)
+  openid     String   @db.VarChar(64)
+  country    String   @default("") @db.VarChar(16)
+  province   String   @default("") @db.VarChar(16)
+  city       String   @db.VarChar(16)
+  createTime DateTime @default(now()) @db.Timestamp(0)
+}
+
 enum et_event_type {
   marry
   love
