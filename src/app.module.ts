@@ -8,6 +8,8 @@ import { RecordDayLoveMomentModule } from './record-day-love-moment/record-day-l
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path'
 import { RecordDayLoveCommentModule } from './record-day-love-comment/record-day-love-comment.module';
+import { WeixinModule } from './weixin/weixin.module';
+import { UserModule } from './user/user.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -18,6 +20,8 @@ import { RecordDayLoveCommentModule } from './record-day-love-comment/record-day
       rootPath: join(__dirname, '..', 'public'),
     }),
     RecordDayLoveCommentModule,
+    WeixinModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
