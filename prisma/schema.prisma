@@ -30,6 +30,7 @@ model et_day_category {
   className  String               @db.VarChar(64)
   name       String               @db.VarChar(64)
   createTime DateTime             @default(now()) @db.Timestamp(0)
+  index      Int
 }
 
 model et_day_love_moment {
