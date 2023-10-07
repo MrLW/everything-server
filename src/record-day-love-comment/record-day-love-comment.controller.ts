@@ -2,33 +2,39 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { RecordDayLoveCommentService } from './record-day-love-comment.service';
 import { CreateRecordDayLoveCommentDto } from './dto/create-record-day-love-comment.dto';
 import { UpdateRecordDayLoveCommentDto } from './dto/update-record-day-love-comment.dto';
+import { Ret } from 'src/common/ret';
 
 @Controller('recordDayLoveComment')
 export class RecordDayLoveCommentController {
   constructor(private readonly recordDayLoveCommentService: RecordDayLoveCommentService) {}
 
   @Post()
-  create(@Body() createRecordDayLoveCommentDto: CreateRecordDayLoveCommentDto) {
-    return this.recordDayLoveCommentService.create(createRecordDayLoveCommentDto);
+  async create(@Body() createRecordDayLoveCommentDto: CreateRecordDayLoveCommentDto) {
+    const res = await  this.recordDayLoveCommentService.create(createRecordDayLoveCommentDto);
+    return Ret.ok(res);
   }
 
   @Get()
-  findAll(@Query('momentId') momentId: string) {
-    return this.recordDayLoveCommentService.findAllByMomentId(~~momentId);
+  async findAll(@Query('momentId') momentId: string) {
+    const res = await  this.recordDayLoveCommentService.findAllByMomentId(~~momentId);
+    return Ret.ok(res);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recordDayLoveCommentService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const res = await  this.recordDayLoveCommentService.findOne(+id);
+    return Ret.ok(res);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRecordDayLoveCommentDto: UpdateRecordDayLoveCommentDto) {
-    return this.recordDayLoveCommentService.update(+id, updateRecordDayLoveCommentDto);
+  async update(@Param('id') id: string, @Body() updateRecordDayLoveCommentDto: UpdateRecordDayLoveCommentDto) {
+    const res = await this.recordDayLoveCommentService.update(+id, updateRecordDayLoveCommentDto);
+    return Ret.ok(res);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recordDayLoveCommentService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const res = await  this.recordDayLoveCommentService.remove(+id);
+    return Ret.ok(res);
   }
 }

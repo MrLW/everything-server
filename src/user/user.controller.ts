@@ -26,8 +26,9 @@ export class UserController {
   }
 
   @Post('regist')
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const res = await this.userService.create(createUserDto);
+    return Ret.ok(res);
   }
 
   @Post('loginByWx')
@@ -45,13 +46,14 @@ export class UserController {
 
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const res = await this.userService.findOne(+id);
   }
 
   @Patch(':openid')
-  update(@Param('openid') openid: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(openid, updateUserDto);
+  async  update(@Param('openid') openid: string, @Body() updateUserDto: UpdateUserDto) {
+    const res = await  this.userService.update(openid, updateUserDto);
+    return Ret.ok(res);
   }
 
   @Delete(':id')

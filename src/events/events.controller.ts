@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Logger } from '@nest
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { Ret } from 'src/common/ret';
 
 @Controller('events')
 export class EventsController {
@@ -13,28 +14,33 @@ export class EventsController {
   }
 
   @Get()
-  findAll() {
-    return this.eventsService.findAll();
+  async findAll() {
+    const res = await this.eventsService.findAll();
+    return Ret.ok(res);
   }
 
   @Get('menses')
-  findMenses() {
-    return this.eventsService.findMenses()
+  async findMenses() {
+    const res = await this.eventsService.findMenses()
+    return Ret.ok(res);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const res = await this.eventsService.findOne(+id);
+    return Ret.ok(res);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventsService.update(+id, updateEventDto);
+  async update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+    const res =await  this.eventsService.update(+id, updateEventDto);
+    return Ret.ok(res);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.eventsService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const res = await this.eventsService.remove(+id);
+    return Ret.ok(res)
   }
 
   

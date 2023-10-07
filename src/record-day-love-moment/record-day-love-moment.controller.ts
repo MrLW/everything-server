@@ -2,43 +2,51 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RecordDayLoveMomentService } from './record-day-love-moment.service';
 import { CreateRecordDayLoveMomentDto } from './dto/create-record-day-love-moment.dto';
 import { UpdateRecordDayLoveMomentDto } from './dto/update-record-day-love-moment.dto';
+import { Ret } from 'src/common/ret';
 
 @Controller('recordDayLoveMoment')
 export class RecordDayLoveMomentController {
   constructor(private readonly recordDayLoveMomentService: RecordDayLoveMomentService) {}
 
   @Post()
-  create(@Body() createRecordDayLoveMomentDto: CreateRecordDayLoveMomentDto) {
-    return this.recordDayLoveMomentService.create(createRecordDayLoveMomentDto);
+  async  create(@Body() createRecordDayLoveMomentDto: CreateRecordDayLoveMomentDto) {
+    const res = await this.recordDayLoveMomentService.create(createRecordDayLoveMomentDto);
+    return Ret.ok(res);
   }
 
   @Get()
-  findAll() {
-    return this.recordDayLoveMomentService.findAll();
+  async  findAll() {
+    const res = await this.recordDayLoveMomentService.findAll();
+    return Ret.ok(res);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.recordDayLoveMomentService.findOne(+id);
+  async  findOne(@Param('id') id: string) {
+    const res = await  this.recordDayLoveMomentService.findOne(+id);
+    return Ret.ok(res)
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRecordDayLoveMomentDto: UpdateRecordDayLoveMomentDto) {
-    return this.recordDayLoveMomentService.update(+id, updateRecordDayLoveMomentDto);
+  async  update(@Param('id') id: string, @Body() updateRecordDayLoveMomentDto: UpdateRecordDayLoveMomentDto) {
+    const res = await  this.recordDayLoveMomentService.update(+id, updateRecordDayLoveMomentDto);
+    return Ret.ok(res)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recordDayLoveMomentService.remove(+id);
+   async remove(@Param('id') id: string) {
+    const res = await  this.recordDayLoveMomentService.remove(+id);
+    return Ret.ok(res)
   }
 
   @Patch(':id/love')
-  love(@Param('id') id: string){
-    return this.recordDayLoveMomentService.like(~~id);
+  async  love(@Param('id') id: string){
+    const res = await  this.recordDayLoveMomentService.like(~~id);
+    return Ret.ok(res)
   }
 
   @Patch(':id/star')
-  star(@Param('id') id: string){
-    return this.recordDayLoveMomentService.star(~~id);
+  async  star(@Param('id') id: string){
+    const res = await  this.recordDayLoveMomentService.star(~~id);
+    return Ret.ok(res)
   }
 }

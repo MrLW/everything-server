@@ -2,33 +2,38 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RecordDayCategoryService } from './record-day-category.service';
 import { CreateRecordDayCategoryDto } from './dto/create-record-day-category.dto';
 import { UpdateRecordDayCategoryDto } from './dto/update-record-day-category.dto';
+import { Ret } from 'src/common/ret';
 
 @Controller('recordDayCategory')
 export class RecordDayCategoryController {
   constructor(private readonly recordDayCategoryService: RecordDayCategoryService) {}
 
   @Post()
-  create(@Body() createRecordDayCategoryDto: CreateRecordDayCategoryDto) {
-    return this.recordDayCategoryService.create(createRecordDayCategoryDto);
+  async create(@Body() createRecordDayCategoryDto: CreateRecordDayCategoryDto) {
+    const res = await this.recordDayCategoryService.create(createRecordDayCategoryDto);
+    return Ret.ok(res);
   }
 
   @Get()
-  findAll() {
-    return this.recordDayCategoryService.findAll();
+  async findAll() {
+    const res = await this.recordDayCategoryService.findAll();
+    return Ret.ok(res);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.recordDayCategoryService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRecordDayCategoryDto: UpdateRecordDayCategoryDto) {
-    return this.recordDayCategoryService.update(+id, updateRecordDayCategoryDto);
+  async update(@Param('id') id: string, @Body() updateRecordDayCategoryDto: UpdateRecordDayCategoryDto) {
+    const res = await this.recordDayCategoryService.update(+id, updateRecordDayCategoryDto);
+    return Ret.ok(res);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recordDayCategoryService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const res = await this.recordDayCategoryService.remove(+id);
+    return Ret.ok(res);
   }
 }
