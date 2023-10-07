@@ -21,7 +21,6 @@ export class WeixinService {
             url,
             method: 'GET',
         }).toPromise()
-        Logger.log(res.data)
         return res.data;
     }
 }

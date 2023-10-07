@@ -9,4 +9,4 @@ export function auth(req: Request, res: Response, next: NextFunction) {
     }
     // 校验token
     next();
-  };
+};

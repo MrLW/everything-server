@@ -12,12 +12,12 @@ export class RecordDayCategoryService {
   }
 
   findAll() {
-    return this.prisma.et_day_category.findMany({ select: { id: true, type: true, className: true, name: true } });
+    return this.prisma.et_day_category.findMany({ orderBy: { index: 'asc' } , select: { id: true, type: true, className: true, name: true } });
   }
 
   async getCategoryMap(){
-    const categoryList = await this.prisma.et_day_category.findMany({ select: { id: true, type: true, className: true, name: true } });
-    return categoryList.reduce((pre, cur) => Object.assign(pre, {[cur.type]: {className: cur.className, name: cur.name } }), {})
+    const categoryList = await this.prisma.et_day_category.findMany({ select: { id: true, type: true, className: true, name: true, index: true } });
+    return categoryList.reduce((pre, cur) => Object.assign(pre, {[cur.type]: {className: cur.className, name: cur.name, index: cur.index } }), {})
   }
 
   findOne(id: number) {

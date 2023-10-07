@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, Query, Req, UseGuards, Request as NestRequest} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Ret } from 'src/common/ret';
-import { Request } from 'express';
+import { AuthGuard } from './auth.guard';
+import { SkipAuth } from './metadata';
+import { extractTokenFromHeader } from 'src/utils';
 
 @Controller('user')
 export class UserController {
@@ -11,9 +13,9 @@ export class UserController {
 
 
   @Post("logout")
-  async logout(@Req() req: Request){
-    const token = req.headers.authorization;
-    await this.userService.logout(token);
+  async logout(@Req() req){
+    const token = extractTokenFromHeader(req);
+    await this.userService.logout(req)
     return Ret.ok();
   }
 
@@ -28,10 +30,19 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @Get(':openid')
-  getUserByOpenId(@Param('openid') openid: string) {
-    return this.userService.findByOpenId(openid);
+  @Post('loginByWx')
+  @SkipAuth()
+  async loginByWx(@Body('openid') openid: string) {
+    const res = await this.userService.loginByWx(openid);
+    return Ret.ok(res);
   }
+
+  @Get('/info')
+  @UseGuards(AuthGuard)
+  async info(@NestRequest() req) {
+    return Ret.ok(req.user);
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {
