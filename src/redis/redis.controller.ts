@@ -9,7 +9,6 @@ export class RedisController {
   @Get(':key')
   async getkey(@Param('key') key: string) {
     const res = await this.redisService.getValue(key);
-    Logger.log(res)
     return Ret.ok(res)
   }
 }

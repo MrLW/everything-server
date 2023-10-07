@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { et_user } from '@prisma/client';
 import { RedisService } from 'src/redis/redis.service';
 import config from '../../config/local'
+import { jwtConstants, redisConstants } from 'src/common/constants';
 
 @Injectable()
 export class UserService {
@@ -23,9 +24,16 @@ export class UserService {
   findAll() {
     return `This action returns all user`;
   }
-
-  findByOpenId(openid: string){
-    return this.prisma.et_user.findFirst({ where: { openid: openid }})
+  /**
+   * 微信小程序登录
+   * @param openid 微信openid
+   * @returns 
+   */
+  async loginByWx(openid: string) {
+    const res = await this.prisma.et_user.findFirst({ where: { openid } });
+    const token = await this.jwtService.signAsync(res, { secret: jwtConstants.secret });
+    this.redisService.setex(redisConstants.tokenKeyPrefix+token, jwtConstants.expiresIn, 1+ '');
+    return { token };
   }
 
   findOne(id: number) {

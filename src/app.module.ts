@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -12,34 +12,29 @@ import { WeixinModule } from './weixin/weixin.module';
 import { UserModule } from './user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from './redis/redis.module';
-// import { AuthMiddleWare } from './middleware/auth';
+import { jwtConstants } from './common/constants';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './user/auth.guard';
 @Module({
   imports: [
     ConfigModule.forRoot({
-    isGlobal: true,
-  }),
-  EventsModule, RecordDayCategoryModule, RecordDayLoveMomentModule,
+      isGlobal: true,
+    }),
+    // 静态资源服务
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),
+    JwtModule.register({ secret: jwtConstants.secret, global: true, signOptions: { expiresIn: jwtConstants.expiresIn } }),
+    EventsModule, RecordDayCategoryModule, RecordDayLoveMomentModule,
     RecordDayLoveCommentModule,
     WeixinModule,
     UserModule,
     RedisModule,
-    JwtModule.register({ secret: 'everything' }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, 
+    // 注册全局守卫
+    { provide: APP_GUARD,useClass: AuthGuard }
+  ],
 })
 export class AppModule {}; 
-
-/** implements NestModule{
-
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleWare).forRoutes({
-      path: '*',
-      method: RequestMethod.ALL,
-    })
-  }
-  
-} */ 

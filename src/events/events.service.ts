@@ -23,7 +23,9 @@ export class EventsService {
       item['className'] = categoryMap[item.type].className;
       item['name'] = categoryMap[item.type].name;
       item['diffDays'] = dayjs().diff(item.startTime, 'day');
+      item['index'] = categoryMap[item.type].index;
     }
+    eventList.sort((cur,next) => cur.index - next.index)
     return eventList;
   }
 
@@ -43,6 +45,10 @@ export class EventsService {
    *  获取所有的姨妈日期
    */
   async findMenses(){
-    return this.prisma.et_event.findMany({ where: { type: 'menses' }, select: { id: true, type: true, startTime: true } })
+    const res = await this.prisma.et_event.findMany({ orderBy: { startTime: 'desc' } , where: { type: 'menses' }, select: { id: true, type: true, startTime: true } })
+    for(let i = 0; i<res.length-1; i++) {
+      res[i]['diffDays'] = dayjs(res[i].startTime).diff(res[i+1].startTime, 'days');
+    }
+    return res;
   }
 }
