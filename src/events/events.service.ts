@@ -18,7 +18,7 @@ export class EventsService {
   async findAll() {
     const categoryMap = await this.categoryService.getCategoryMap()
     // 先排序, 再分组
-    const eventList: any = await this.prisma.$queryRaw`select * from (select * from et_event where deleted = 0 order by createTime desc limit 1000 ) tmp GROUP BY type`
+    const eventList: any = await this.prisma.$queryRaw`select * from (select * from et_event where deleted = 0 order by startTime desc limit 1000 ) tmp GROUP BY type`
     for(let item of eventList){
       item['className'] = categoryMap[item.type].className;
       item['name'] = categoryMap[item.type].name;
@@ -44,10 +44,11 @@ export class EventsService {
   /**
    *  获取所有的姨妈日期
    */
-  async findMenses(){
+  async findMenses(avatarUrl: string){
     const res = await this.prisma.et_event.findMany({ orderBy: { startTime: 'desc' } , where: { type: 'menses' }, select: { id: true, type: true, startTime: true } })
     for(let i = 0; i<res.length-1; i++) {
       res[i]['diffDays'] = dayjs(res[i].startTime).diff(res[i+1].startTime, 'days');
+      res[i]['avatarUrl'] = avatarUrl;
     }
     return res;
   }
