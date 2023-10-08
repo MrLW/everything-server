@@ -34,15 +34,16 @@ model et_day_category {
 }
 
 model et_day_love_moment {
-  id         Int      @id @default(autoincrement())
-  title      String   @db.VarChar(64)
-  content    String   @db.Text
-  loves      Int      @default(0)
-  stars      Int      @default(0)
-  userId     Int      @default(1)
-  images     String   @db.Text
-  public     Boolean  @default(false)
-  createTime DateTime @default(now()) @db.Timestamp(0)
+  id                         Int                          @id @default(autoincrement())
+  title                      String                       @db.VarChar(64)
+  content                    String                       @db.Text
+  loves                      Int                          @default(0)
+  stars                      Int                          @default(0)
+  userId                     Int                          @default(1)
+  images                     String                       @db.Text
+  public                     Boolean                      @default(false)
+  createTime                 DateTime                     @default(now()) @db.Timestamp(0)
+  et_day_love_moment_comment et_day_love_moment_comment[]
 }
 
 model et_day_love_moment_love_mapping {
@@ -54,26 +55,32 @@ model et_day_love_moment_love_mapping {
 }
 
 model et_day_love_moment_comment {
-  id         Int      @id @default(autoincrement())
-  content    String   @db.Text
-  userId     Int
-  momentId   Int
-  createTime DateTime @default(now()) @db.Timestamp(0)
+  id                 Int                @id @default(autoincrement())
+  content            String             @db.Text
+  userId             Int
+  momentId           Int
+  createTime         DateTime           @default(now()) @db.Timestamp(0)
+  et_day_love_moment et_day_love_moment @relation(fields: [momentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "momentId")
+  et_user            et_user            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId")
+
+  @@index([momentId], map: "momentId")
+  @@index([userId], map: "userId")
 }
 
 model et_user {
-  id         Int      @id @default(autoincrement())
-  username   String   @default("") @db.VarChar(16)
-  avatarUrl  String   @default("") @db.VarChar(256)
-  sex        Int      @default(0)
-  openid     String   @default("") @db.VarChar(64)
-  country    String   @default("") @db.VarChar(16)
-  province   String   @default("") @db.VarChar(16)
-  city       String   @default("") @db.VarChar(16)
-  exps       Int      @default(0)
-  loves      Int      @default(0)
-  subs       Int      @default(0)
-  createTime DateTime @default(now()) @db.Timestamp(0)
+  id                         Int                          @id @default(autoincrement())
+  username                   String                       @default("") @db.VarChar(16)
+  avatarUrl                  String                       @default("") @db.VarChar(256)
+  sex                        Int                          @default(0)
+  openid                     String                       @default("") @db.VarChar(64)
+  country                    String                       @default("") @db.VarChar(16)
+  province                   String                       @default("") @db.VarChar(16)
+  city                       String                       @default("") @db.VarChar(16)
+  exps                       Int                          @default(0)
+  loves                      Int                          @default(0)
+  subs                       Int                          @default(0)
+  createTime                 DateTime                     @default(now()) @db.Timestamp(0)
+  et_day_love_moment_comment et_day_love_moment_comment[]
 }
 
 model et_user_copy1 {

@@ -12,7 +12,14 @@ export class RecordDayLoveCommentService {
   }
 
  async findAllByMomentId(momentId: number) {
-    return this.prisma.et_day_love_moment_comment.findMany({ where: { momentId } })
+    const res = await this.prisma.et_day_love_moment_comment.findMany({ 
+      where: { momentId },
+      include: {
+        et_user: true,
+      }
+    })
+    //
+    return res;
   }
 
   findOne(id: number) {

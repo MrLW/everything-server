@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { RecordDayLoveMomentService } from './record-day-love-moment.service';
 import { CreateRecordDayLoveMomentDto } from './dto/create-record-day-love-moment.dto';
 import { UpdateRecordDayLoveMomentDto } from './dto/update-record-day-love-moment.dto';
@@ -15,14 +15,14 @@ export class RecordDayLoveMomentController {
   }
 
   @Get()
-  async  findAll() {
-    const res = await this.recordDayLoveMomentService.findAll();
+  async  findAll(@Req() req) {
+    const res = await this.recordDayLoveMomentService.findAll(req.user.id);
     return Ret.ok(res);
   }
 
   @Get(':id')
-  async  findOne(@Param('id') id: string) {
-    const res = await  this.recordDayLoveMomentService.findOne(+id);
+  async  findOne(@Param('id') id: string, @Req() req) {
+    const res = await  this.recordDayLoveMomentService.findOne(+id,req.user.id);
     return Ret.ok(res)
   }
 
@@ -39,14 +39,14 @@ export class RecordDayLoveMomentController {
   }
 
   @Patch(':id/love')
-  async  love(@Param('id') id: string){
-    const res = await  this.recordDayLoveMomentService.like(~~id);
+  async  love(@Param('id') id: string, @Body('incre') incre: number, @Req() req){
+    const res = await  this.recordDayLoveMomentService.like(~~id, incre, req.user.id);
     return Ret.ok(res)
   }
 
   @Patch(':id/star')
-  async  star(@Param('id') id: string){
-    const res = await  this.recordDayLoveMomentService.star(~~id);
+  async  star(@Param('id') id: string, @Body('incre') incre: number, @Req() req){
+    const res = await  this.recordDayLoveMomentService.star(~~id, incre, req.user.id);
     return Ret.ok(res)
   }
 }

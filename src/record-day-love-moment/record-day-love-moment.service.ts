@@ -12,7 +12,6 @@ export class RecordDayLoveMomentService {
   constructor(private prisma: PrismaService, private config: ConfigService) { }
 
   create(createRecordDayLoveMomentDto: CreateRecordDayLoveMomentDto) {
-    // const images = JSON.stringify(createRecordDayLoveMomentDto.images);
     const imageKeyList: string[] = [];
     for(let image of createRecordDayLoveMomentDto.images){
       const key = '/moment/' + Date.now()+ '.jpg';
@@ -23,23 +22,29 @@ export class RecordDayLoveMomentService {
     return this.prisma.et_day_love_moment.create({ data: Object.assign(createRecordDayLoveMomentDto, { images: JSON.stringify(imageKeyList) })})
   }
 
-  async findAll() {
+  async findAll(userId: number) {
     const domain = this.config.get("DOMAIN");
 
     const res = await this.prisma.et_day_love_moment.findMany({ where: { public: true } });
+    const mappingList = await this.prisma.et_day_love_moment_love_mapping.findMany({ where: { type: 'love' , momentId: { in: res.map(item => item.id )} } })
+    const mappingMap = mappingList.reduce((pre, cur) => Object.assign(pre, {[cur.momentId]: cur.userId }), {})
     for(let item of res){
       const images = JSON.parse(item.images) as string[];
-      item['cover'] = images.length > 0 ? domain + images[0]: 'https://web-assets.dcloud.net.cn/unidoc/zh/shuijiao.jpg' 
+      item['cover'] = images.length > 0 ? domain + images[0]: 'https://web-assets.dcloud.net.cn/unidoc/zh/shuijiao.jpg';
+      // 判断当前用户是否喜欢瞬间
+      item['loved'] = userId == mappingMap[item.id];
     }
     return res;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, userId: number) {
     const domain = this.config.get("DOMAIN");
     const res = await this.prisma.et_day_love_moment.findUnique({ where: { id  } });
     if(!res || !res.images) return res;
     const images = JSON.parse(res.images) as string[];
-    return Object.assign(res, { images: images.map(image => domain + image)});
+    const loved = await this.prisma.et_day_love_moment_love_mapping.count({ where: { momentId: id, userId, type: 'love' } })
+    const stared = await this.prisma.et_day_love_moment_love_mapping.count({ where: { momentId: id, userId, type: 'star' } })
+    return Object.assign(res, { loved: !!loved, stared: !!stared, images: images.map(image => domain + image)});
   }
 
   update(id: number, updateRecordDayLoveMomentDto: UpdateRecordDayLoveMomentDto) {
@@ -53,38 +58,47 @@ export class RecordDayLoveMomentService {
   /**
    * 点赞
    * @param id 瞬间id
+   * @param userId 用户id
    */
-  async like(id: number){
-    this.prisma.et_day_love_moment_love_mapping.create({
-      data: {
-        userId: 1,
-        momentId: id,
-        type: 'love'  
-      }
-    })
+  async like(id: number, incre: number, userId: number,){
+    if(incre > 0){
+      await this.prisma.et_day_love_moment_love_mapping.create({
+        data: {
+          userId ,
+          momentId: id,
+          type: 'love'  
+        }
+      })
+    }else {
+      await this.prisma.et_day_love_moment_love_mapping.deleteMany({ where: { userId, momentId: id , type: 'love'} });
+    }
     await this.prisma.et_day_love_moment.update({
       where: { id },
       data: {
-        loves: { increment: 1 }
+        loves: { increment: incre }
       } 
+    })
+    await this.prisma.et_user.update({
+      where: { id: userId },
+      data: {
+        loves: { increment: incre }
+      }
     })
   }
   /**
    * 收藏
    * @param id 
    */
-  async star(id: number){
-    this.prisma.et_day_love_moment_love_mapping.create({
-      data: {
-        userId: 1,
-        momentId: id,
-        type: 'star',
-      }
-    })
+  async star(id: number, incre: number, userId: number){
+    
+    incre > 0 ? 
+      await this.prisma.et_day_love_moment_love_mapping.create({ data: { userId,  momentId: id,  type: 'star', } }): 
+      await this.prisma.et_day_love_moment_love_mapping.deleteMany({ where: { userId, momentId: id, type: 'star'} })
+    
     await this.prisma.et_day_love_moment.update({
       where: { id },
       data: {
-        stars: { increment: 1 }
+        stars: { increment: incre }
       } 
     })
   }
