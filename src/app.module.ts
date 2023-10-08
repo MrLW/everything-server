@@ -22,7 +22,7 @@ import { AuthGuard } from './user/auth.guard';
     }),
     // 静态资源服务
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
+      rootPath: join(__dirname, '../..', 'public'), // TODO: __dirname 不正确
     }),
     JwtModule.register({ secret: jwtConstants.secret, global: true, signOptions: { expiresIn: jwtConstants.expiresIn } }),
     EventsModule, RecordDayCategoryModule, RecordDayLoveMomentModule,
