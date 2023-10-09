@@ -15,6 +15,7 @@ import { RedisModule } from './redis/redis.module';
 import { jwtConstants } from './common/constants';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './user/auth.guard';
+import { AreaModule } from './area/area.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -30,6 +31,7 @@ import { AuthGuard } from './user/auth.guard';
     WeixinModule,
     UserModule,
     RedisModule,
+    AreaModule,
   ],
   controllers: [AppController],
   providers: [AppService, 

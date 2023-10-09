@@ -12,6 +12,19 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
 
+  @Post('/updateAvatarUrl')
+  async updateAvatarUrl(@Body("avatar") avatar: string, @Req() req ){
+    const res = await this.userService.updateAvatarUrl(req.user.id , avatar);
+    return Ret.ok(res)
+  }
+
+  @Post('/updateArea')
+  async updateArea(@Body("codes") codes: string[], @Req() req ){
+    await this.userService.updateArea(req.user.id , codes);
+    return Ret.ok()
+  }
+
+
   @Post("logout")
   async logout(@Req() req){
     const token = extractTokenFromHeader(req);
@@ -41,13 +54,8 @@ export class UserController {
   @Get('/info')
   @UseGuards(AuthGuard)
   async info(@NestRequest() req) {
-    return Ret.ok(req.user);
-  }
-
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const res = await this.userService.findOne(+id);
+    const info = await this.userService.info(req.user.id);
+    return Ret.ok(info);
   }
 
   @Patch(':openid')
