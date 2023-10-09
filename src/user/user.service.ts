@@ -7,12 +7,17 @@ import { et_user } from '@prisma/client';
 import { RedisService } from 'src/redis/redis.service';
 import config from '../../config/local'
 import { jwtConstants, redisConstants } from 'src/common/constants';
+import * as path from 'path';
+import * as fs from 'fs'
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService, 
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService ) { }
+    private readonly redisService: RedisService,
+    private readonly configService: ConfigService,
+     ) { }
 
   async create(createUserDto: CreateUserDto) {
     const user = await this.prisma.et_user.findFirst({ where: { openid: createUserDto.openid }})
@@ -35,9 +40,14 @@ export class UserService {
     this.redisService.setex(redisConstants.tokenKeyPrefix+token, jwtConstants.expiresIn, 1+ '');
     return { token };
   }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  
+  /**
+   * 获取用户信息
+   * @param id 用户id
+   * @returns 
+   */
+  info(id: number) {
+    return this.prisma.et_user.findFirst({ where: { id } });
   }
 
   async update(openid: string, updateUserDto: UpdateUserDto) {
@@ -92,5 +102,42 @@ export class UserService {
    */
   async logout(token: string){
     await this.redisService.del(token);
+  }
+
+  /**
+   * 更新用户头像
+   * @param userId 用户id
+   * @param avatar 图片的base64
+   */
+  async updateAvatarUrl(userId: number, avatar: string) {
+    // 1. 将base64下载到本地
+    const avatarDiv = path.join(__dirname, '../../../', 'public', 'avatar');
+    if(!fs.existsSync(avatarDiv)) {
+      fs.mkdirSync(avatarDiv);
+    }
+    const filename = `${Date.now()}.jpg`;
+    const localpath = path.join(avatarDiv, filename);
+    fs.writeFileSync(localpath, Buffer.from(avatar.replace(/^data:image\/\w+;base64,/, ''), 'base64'));
+    // 2. 更新头像
+    const avatarUrl =  this.configService.get('DOMAIN') + '/avatar/' + filename;
+    await this.prisma.et_user.update({ where: { id: userId }, data: { avatarUrl }  })
+
+    return { avatarUrl };
+  }
+
+
+  /**
+   * 更新用户的省市区
+   * @param codes 省市区的code
+   */
+  async updateArea(userId: number,codes: string[]){
+    await this.prisma.et_user.update({
+      where: { id: userId },
+      data: {
+        province: codes[0],
+        city: codes[1],
+        district: codes[2]
+      }
+    })
   }
 }

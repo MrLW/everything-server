@@ -79,20 +79,66 @@ model et_user {
   exps                       Int                          @default(0)
   loves                      Int                          @default(0)
   subs                       Int                          @default(0)
+  birthday                   String                       @default("") @db.VarChar(16)
   createTime                 DateTime                     @default(now()) @db.Timestamp(0)
+  district                   String                       @default("") @db.VarChar(16)
   et_day_love_moment_comment et_day_love_moment_comment[]
 }
 
-model et_user_copy1 {
-  id         Int      @id @default(autoincrement())
-  username   String   @db.VarChar(16)
-  avatarUrl  String   @db.VarChar(256)
-  sex        Int      @default(0)
-  openid     String   @db.VarChar(64)
-  country    String   @default("") @db.VarChar(16)
-  province   String   @default("") @db.VarChar(16)
-  city       String   @db.VarChar(16)
-  createTime DateTime @default(now()) @db.Timestamp(0)
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model city {
+  CITY_ID       Int       @id @default(autoincrement())
+  CITY_CODE     String    @db.VarChar(40)
+  CITY_NAME     String    @db.VarChar(40)
+  SHORT_NAME    String    @db.VarChar(20)
+  PROVINCE_CODE String?   @db.VarChar(40)
+  LNG           String?   @db.VarChar(20)
+  LAT           String?   @db.VarChar(20)
+  SORT          Int?
+  GMT_CREATE    DateTime? @db.DateTime(0)
+  GMT_MODIFIED  DateTime? @db.DateTime(0)
+  MEMO          String?   @db.VarChar(250)
+  DATA_STATE    Int?
+  TENANT_CODE   String?   @db.VarChar(32)
+
+  @@index([CITY_CODE, TENANT_CODE], map: "Index_1")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model district {
+  AREA_ID      Int       @id @default(autoincrement())
+  AREA_CODE    String    @db.VarChar(40)
+  CITY_CODE    String?   @db.VarChar(40)
+  AREA_NAME    String    @db.VarChar(40)
+  SHORT_NAME   String    @db.VarChar(20)
+  LNG          String?   @db.VarChar(20)
+  LAT          String?   @db.VarChar(20)
+  SORT         Int?
+  GMT_CREATE   DateTime? @db.DateTime(0)
+  GMT_MODIFIED DateTime? @db.DateTime(0)
+  MEMO         String?   @db.VarChar(250)
+  DATA_STATE   Int?
+  TENANT_CODE  String?   @db.VarChar(32)
+
+  @@index([AREA_CODE, TENANT_CODE], map: "Index_1")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model province {
+  PROVINCE_ID   Int       @id @default(autoincrement())
+  PROVINCE_CODE String    @db.VarChar(40)
+  PROVINCE_NAME String    @db.VarChar(50)
+  SHORT_NAME    String    @db.VarChar(20)
+  LNG           String?   @db.VarChar(20)
+  LAT           String?   @db.VarChar(20)
+  SORT          Int?
+  GMT_CREATE    DateTime? @db.DateTime(0)
+  GMT_MODIFIED  DateTime? @db.DateTime(0)
+  MEMO          String?   @db.VarChar(250)
+  DATA_STATE    Int?
+  TENANT_CODE   String?   @db.VarChar(32)
+
+  @@index([PROVINCE_CODE, TENANT_CODE], map: "Index_1")
 }
 
 enum et_event_type {
