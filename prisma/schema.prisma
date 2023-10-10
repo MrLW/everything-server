@@ -80,6 +80,7 @@ model et_user {
   loves                      Int                          @default(0)
   subs                       Int                          @default(0)
   birthday                   String                       @default("") @db.VarChar(16)
+  desc                       String                       @default("") @db.VarChar(512)
   createTime                 DateTime                     @default(now()) @db.Timestamp(0)
   district                   String                       @default("") @db.VarChar(16)
   et_day_love_moment_comment et_day_love_moment_comment[]

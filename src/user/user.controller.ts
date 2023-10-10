@@ -11,6 +11,17 @@ import { extractTokenFromHeader } from 'src/utils';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Post('/updateUsername')
+  async updateUsername(@Body("username") username: string, @Req() req ){
+    await this.userService.updateUsername(req.user.id , username);
+    return Ret.ok()
+  }
+
+  @Post('/updateDesc')
+  async updateDesc(@Body("desc") desc: string, @Req() req ){
+    await this.userService.updateDesc(req.user.id , desc);
+    return Ret.ok()
+  }
 
   @Post('/updateAvatarUrl')
   async updateAvatarUrl(@Body("avatar") avatar: string, @Req() req ){
