@@ -140,4 +140,22 @@ export class UserService {
       }
     })
   }
+
+  /**
+   * 更新用户简介
+   * @param userId 用户id
+   * @param desc 用户简介
+   */
+  async updateDesc(userId: number, desc: string ) {
+    await this.prisma.et_user.update({ where: { id: userId }, data: { desc }})
+  }
+
+  /**
+   * 更新用户名称
+   * @param userId 用户id
+   * @param desc 用户名称
+   */
+  async updateUsername(userId: number, username: string ) {
+    await this.prisma.et_user.update({ where: { id: userId }, data: { username }})
+  }
 }
