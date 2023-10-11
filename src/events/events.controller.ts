@@ -21,7 +21,7 @@ export class EventsController {
 
   @Get('menses')
   async findMenses(@Req() req) {
-    const res = await this.eventsService.findMenses(req.user.avatarUrl)
+    const res = await this.eventsService.findMenses(req.user.id)
     return Ret.ok(res);
   }
 
