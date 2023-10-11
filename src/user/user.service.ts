@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { GoneException, Injectable, Logger } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -157,5 +157,29 @@ export class UserService {
    */
   async updateUsername(userId: number, username: string ) {
     await this.prisma.et_user.update({ where: { id: userId }, data: { username }})
+  }
+
+  /**
+   * 更新eid
+   * @param userId 用户id
+   * @param desc 用户eid
+   */
+  async updateEid(userId: number, eid: string ) {
+    if(await this.prisma.et_user.count( { where: { eid } })){
+      throw new GoneException("该EID已存在");
+    }
+    await this.prisma.et_user.update({ where: { id: userId }, data: { eid }})
+    return true;
+  }
+
+
+   /**
+   * 更新性别
+   * @param userId 用户id
+   * @param sex 用户sex
+   */
+   async updateSex(userId: number, sex: number ) {
+    await this.prisma.et_user.update({ where: { id: userId }, data: { sex }})
+    return true;
   }
 }

@@ -44,12 +44,15 @@ export class EventsService {
   /**
    *  获取所有的姨妈日期
    */
-  async findMenses(avatarUrl: string){
+  async findMenses(userId: number){
+    const user = await this.prisma.et_user.findFirst({ where: { id: userId } , select: { avatarUrl: true }})
     const res = await this.prisma.et_event.findMany({ orderBy: { startTime: 'desc' } , where: { type: 'menses' }, select: { id: true, type: true, startTime: true } })
-    for(let i = 0; i<res.length-1; i++) {
+    let i = 0;
+    for(; i<res.length-1; i++) {
       res[i]['diffDays'] = dayjs(res[i].startTime).diff(res[i+1].startTime, 'days');
-      res[i]['avatarUrl'] = avatarUrl;
+      res[i]['avatarUrl'] = user.avatarUrl;
     }
+    res[i]['avatarUrl'] = user.avatarUrl;
     return res;
   }
 }

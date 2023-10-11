@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, Query, Req, UseGuards, Request as NestRequest} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete,  Req, UseGuards, Request as NestRequest, GoneException} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,6 +10,18 @@ import { extractTokenFromHeader } from 'src/utils';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Post('/updateSex')
+  async updateSex(@Body("sex") sex: number, @Req() req ){
+    const success = await this.userService.updateSex(req.user.id , sex);
+    return success ? Ret.ok(): Ret.fail("该EID已存在");
+  }
+
+  @Post('/updateEid')
+  async updateEid(@Body("eid") eid: string, @Req() req ){
+    const success = await this.userService.updateEid(req.user.id , eid);
+    return success ? Ret.ok(): Ret.fail("该EID已存在");
+  }
 
   @Post('/updateUsername')
   async updateUsername(@Body("username") username: string, @Req() req ){
