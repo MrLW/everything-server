@@ -18,6 +18,7 @@ model et_event {
   username   String?       @db.VarChar(4)
   remark     String?       @db.VarChar(20)
   deleted    Boolean       @default(false)
+  userId     Int           @default(1)
   createTime DateTime      @default(now()) @db.DateTime(0)
   lastUpdate DateTime      @default(now()) @db.DateTime(0)
 
@@ -68,26 +69,26 @@ model et_day_love_moment_comment {
 }
 
 model et_user {
-  id                                                 Int                          @id @default(autoincrement())
-  eid                                                String                       @default("") @db.VarChar(32)
-  username                                           String                       @default("") @db.VarChar(16)
-  avatarUrl                                          String                       @default("") @db.VarChar(256)
-  sex                                                Int                          @default(0)
-  openid                                             String                       @default("") @db.VarChar(64)
-  country                                            String                       @default("") @db.VarChar(16)
-  province                                           String                       @default("") @db.VarChar(16)
-  city                                               String                       @default("") @db.VarChar(16)
-  district                                           String                       @default("") @db.VarChar(16)
-  exps                                               Int                          @default(0)
-  loves                                              Int                          @default(0)
-  subs                                               Int                          @default(0)
-  birthday                                           String                       @default("") @db.VarChar(16)
-  desc                                               String                       @default("") @db.VarChar(512)
-  createTime                                         DateTime                     @default(now()) @db.Timestamp(0)
-  et_chat                                            et_chat[]
-  et_day_love_moment_comment                         et_day_love_moment_comment[]
-  et_user_relation_et_user_relation_userId1Toet_user et_user_relation[]           @relation("et_user_relation_userId1Toet_user")
-  et_user_relation_et_user_relation_userId2Toet_user et_user_relation[]           @relation("et_user_relation_userId2Toet_user")
+  id                         Int                          @id @default(autoincrement())
+  eid                        String                       @default("") @db.VarChar(32)
+  username                   String                       @default("") @db.VarChar(16)
+  avatarUrl                  String                       @default("") @db.VarChar(256)
+  sex                        Int                          @default(0)
+  openid                     String                       @default("") @db.VarChar(64)
+  country                    String                       @default("") @db.VarChar(16)
+  province                   String                       @default("") @db.VarChar(16)
+  city                       String                       @default("") @db.VarChar(16)
+  district                   String                       @default("") @db.VarChar(16)
+  exps                       Int                          @default(0)
+  loves                      Int                          @default(0)
+  subs                       Int                          @default(0)
+  birthday                   String                       @default("") @db.VarChar(16)
+  desc                       String                       @default("") @db.VarChar(512)
+  createTime                 DateTime                     @default(now()) @db.Timestamp(0)
+  et_chat                    et_chat[]
+  et_day_love_moment_comment et_day_love_moment_comment[]
+
+  @@index([eid], map: "eid")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -158,16 +159,15 @@ model et_chat {
 }
 
 model et_user_relation {
-  id                                        Int                   @id @default(autoincrement())
-  userId1                                   Int
-  userId2                                   Int
-  type                                      et_user_relation_type @default(friend)
-  createTime                                DateTime              @default(now()) @db.Timestamp(0)
-  et_user_et_user_relation_userId1Toet_user et_user               @relation("et_user_relation_userId1Toet_user", fields: [userId1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId1")
-  et_user_et_user_relation_userId2Toet_user et_user               @relation("et_user_relation_userId2Toet_user", fields: [userId2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "userId2")
+  id         Int                      @id @default(autoincrement())
+  sendId     Int
+  receId     Int
+  type       et_user_relation_type    @default(friend)
+  status     et_user_relation_status? @default(apply)
+  createTime DateTime                 @default(now()) @db.Timestamp(0)
 
-  @@index([userId1], map: "userId1")
-  @@index([userId2], map: "userId2")
+  @@index([sendId], map: "a")
+  @@index([receId], map: "b")
 }
 
 enum et_event_type {
@@ -194,4 +194,9 @@ enum et_user_relation_type {
   friend
   love
   marry
+}
+
+enum et_user_relation_status {
+  apply
+  success
 }
