@@ -11,6 +11,18 @@ import { extractTokenFromHeader } from 'src/utils';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Post('/marry/apply')
+  async marryApply( @Req() req, @Body("receEid") receEid: string ){
+    const res = await this.userService.marryApply(req.user.id, receEid);
+    return Ret.ok(res)
+  }
+
+  @Get('/marry/info')
+  async marryInfo( @Req() req ){
+    const res = await this.userService.marryInfo(req.user.id);
+    return Ret.ok(res)
+  }
+
   @Post('/updateSex')
   async updateSex(@Body("sex") sex: number, @Req() req ){
     const success = await this.userService.updateSex(req.user.id , sex);
