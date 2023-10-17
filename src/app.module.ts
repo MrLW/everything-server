@@ -16,6 +16,8 @@ import { jwtConstants } from './common/constants';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './user/auth.guard';
 import { AreaModule } from './area/area.module';
+import { MessageModule } from './message/message.module';
+import { SocketModule } from './socket/socket.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,6 +34,8 @@ import { AreaModule } from './area/area.module';
     UserModule,
     RedisModule,
     AreaModule,
+    MessageModule,
+    SocketModule
   ],
   controllers: [AppController],
   providers: [AppService, 

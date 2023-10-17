@@ -6,10 +6,11 @@ import { JwtService } from '@nestjs/jwt';
 import { RedisService } from 'src/redis/redis.service';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
+import { SocketGateway } from 'src/socket/socket.gateway';
 
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, PrismaService, JwtService, RedisService ],
+  providers: [UserService, PrismaService, JwtService, RedisService, SocketGateway ],
 })
 export class UserModule {}

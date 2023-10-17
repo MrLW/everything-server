@@ -87,6 +87,7 @@ model et_user {
   createTime                 DateTime                     @default(now()) @db.Timestamp(0)
   et_chat                    et_chat[]
   et_day_love_moment_comment et_day_love_moment_comment[]
+  et_message                 et_message[]
 
   @@index([eid], map: "eid")
 }
@@ -150,12 +151,12 @@ model province {
 model et_chat {
   id         Int      @id @default(autoincrement())
   sendId     Int
-  recvId     Int
+  receId     Int
   content    String   @default("") @db.VarChar(128)
   createTime DateTime @default(now()) @db.Timestamp(0)
-  et_user    et_user  @relation(fields: [recvId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "recvId")
+  et_user    et_user  @relation(fields: [receId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "recvId")
 
-  @@index([recvId], map: "sendId")
+  @@index([receId], map: "sendId")
 }
 
 model et_user_relation {
@@ -168,6 +169,19 @@ model et_user_relation {
 
   @@index([sendId], map: "a")
   @@index([receId], map: "b")
+}
+
+model et_message {
+  id         Int               @id @default(autoincrement())
+  title      String            @default("") @db.VarChar(64)
+  content    String            @default("") @db.VarChar(256)
+  userId     Int
+  data       String            @db.Text
+  status     et_message_status @default(read)
+  createTime DateTime          @default(now()) @db.Timestamp(0)
+  et_user    et_user           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "et_user")
+
+  @@index([userId], map: "et_user")
 }
 
 enum et_event_type {
@@ -199,4 +213,10 @@ enum et_user_relation_type {
 enum et_user_relation_status {
   apply
   success
+}
+
+enum et_message_status {
+  unread
+  read
+  complete
 }

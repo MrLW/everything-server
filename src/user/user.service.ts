@@ -9,7 +9,16 @@ import config from '../../config/local'
 import { jwtConstants, redisConstants } from 'src/common/constants';
 import * as path from 'path';
 import * as fs from 'fs'
+
+export type Message = {
+  content: string;
+  sendId: number;
+  receId: number;  
+}
+
 import { ConfigService } from '@nestjs/config';
+import { SocketGateway } from 'src/socket/socket.gateway';
+import { SOCKET_EVENT_NAME } from 'src/socket/constant';
 
 @Injectable()
 export class UserService {
@@ -17,6 +26,7 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly configService: ConfigService,
+    private readonly socket: SocketGateway,
   ) { 
     let query = 'query' as never, info = 'info' as never, warn = 'warn' as never, error = 'error' as never;
     prisma.$on(query, (e)=>{
@@ -218,20 +228,42 @@ export class UserService {
   /**
    * 发送marry 申请
    * @param userId 申请人 的id
-   * @param receEId 被申请人的EID
+   * @param receEid 被申请人的EID
    */
-  async marryApply(userId: number, receEId: string) {
-
-    const target = await this.prisma.et_user.findFirst({ where: { eid: receEId }});
+  async marryApply(userId: number, receEid: string) {
+    const target = await this.prisma.et_user.findFirst({ where: { eid: receEid }});
     if(!target) {
       throw new GoneException("您输入的EID不存在!");
     }
-    const exist = await this.prisma.et_user_relation.findFirst({ where: { sendId: userId, type: 'marry' }})
-    if(exist) throw new GoneException("您已发送好友申请！")
+    const relation = await this.prisma.et_user_relation.findFirst({ where: { sendId: userId, type: 'marry' }})
+    if(relation && relation.receId == target.id) throw new GoneException("您已发送好友申请！")
+    if(relation){
+      await this.prisma.et_user_relation.delete({where: { id: relation.id }})
+    }
 
     await this.prisma.et_user_relation.create({
       data: { sendId: userId, receId: target.id, type: 'marry', status: 'apply'}
     })
+
+    // 发送消息
+    const sender = await this.prisma.et_user.findFirst({ where: { id: userId }, select: { username: true } })
+    await this.prisma.et_message.create({
+      data: {
+        userId: target.id, title: sender.username, content: `向你发送了好友申请`, data: '{}'
+      }
+    })
+    // 通知发送消息更新
+    this.socket.emit(target.id, SOCKET_EVENT_NAME.USER_MESSAGE_LIST, {});
+    return this.marryInfo(userId);
+  }
+
+  /**
+   * 发送消息
+   * @param message 
+   */
+  async sendMessage(message: Message){
+    await this.prisma.et_chat.create({ data: message });
+    this.socket.emit
   }
 
   /**
