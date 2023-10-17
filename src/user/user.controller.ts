@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete,  Req, UseGuards, Request as NestRequest, GoneException} from '@nestjs/common';
-import { UserService } from './user.service';
+import { Controller, Get, Post, Body, Patch, Param, Delete,  Req, UseGuards, Request as NestRequest, GoneException, Logger} from '@nestjs/common';
+import { Message, UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Ret } from 'src/common/ret';
@@ -10,6 +10,12 @@ import { extractTokenFromHeader } from 'src/utils';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Post('/chat')
+  async sendMessage(@Req() req, message: Message ){
+    message.sendId = req.user.id;
+    await this.userService.sendMessage(message);
+  }
 
   @Post('/marry/apply')
   async marryApply( @Req() req, @Body("receEid") receEid: string ){

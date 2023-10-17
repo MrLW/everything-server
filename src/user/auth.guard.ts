@@ -23,7 +23,7 @@ export class AuthGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const token = extractTokenFromHeader(request);
         if(!token) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException("您未登录, 请先登录!");
         }
         // 有可能手动退出登录
         const exist = await this.redisService.getValue(redisConstants.tokenKeyPrefix + token);
@@ -37,6 +37,7 @@ export class AuthGuard implements CanActivate {
                     secret: jwtConstants.secret
                 }
             );
+            Logger.log("#userid: ", payload.id)
             // 💡 We're assigning the payload to the request object here
             // so that we can access it in our route handlers
             request['user'] = payload;
