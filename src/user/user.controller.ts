@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete,  Req, UseGuards, Request as NestRequest, GoneException, Logger} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete,  Req, UseGuards, Request as NestRequest, GoneException, Logger, Query} from '@nestjs/common';
 import { Message, UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -11,10 +11,32 @@ import { extractTokenFromHeader } from 'src/utils';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+
+  @Post('/email/verify')
+  @SkipAuth()
+  async verifyCode(@Body("email") email: string, @Body("code") code: string){
+    const res = await this.userService.verifyCode(email,code);
+    return Ret.ok(res);
+  }
+
+  @Post('/email/code')
+  @SkipAuth()
+  async sendEmailCode(@Body("email") email: string){
+    const res = await this.userService.sendEmailCode(email);
+    return Ret.ok(res);
+  }
+
   @Post('/chat')
-  async sendMessage(@Req() req, message: Message ){
+  async createChat(@Req() req, @Body() message: Message ){
     message.sendId = req.user.id;
     await this.userService.sendMessage(message);
+    return Ret.ok();
+  }
+
+  @Get('/chat')
+  async chatList(@Req() req, @Query("friendId") friendId: string){
+    const res = await this.userService.chatList(req.user.id, ~~friendId);
+    return Ret.ok(res);
   }
 
   @Post('/marry/apply')

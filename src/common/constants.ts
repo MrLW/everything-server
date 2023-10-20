@@ -4,5 +4,6 @@ export const jwtConstants = {
 }
 
 export const redisConstants = {
-    tokenKeyPrefix: 'et:user:token:'
+    tokenKeyPrefix: 'et:user:token:',
+    emailKeyPrefix: 'et:user:email:'
 }

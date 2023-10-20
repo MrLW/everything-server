@@ -71,6 +71,7 @@ model et_day_love_moment_comment {
 model et_user {
   id                         Int                          @id @default(autoincrement())
   eid                        String                       @default("") @db.VarChar(32)
+  email                      String                       @default("") @db.VarChar(64)
   username                   String                       @default("") @db.VarChar(16)
   avatarUrl                  String                       @default("") @db.VarChar(256)
   sex                        Int                          @default(0)

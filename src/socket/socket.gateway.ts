@@ -24,14 +24,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect{
 
   
   handleConnection(client: Socket, ...args: any[]) {
-    Logger.log(client.id)
-    Logger.log(`【${client.id}】handleConnection...`);
+    Logger.log(`【${client.id}】handleConnection...`, args);
   }
 
   @WebSocketServer()
   private server: Server
 
-  @SubscribeMessage(`${SOCKET_EVENT_NAME.USER_INIT}`)
+  @SubscribeMessage(`${SOCKET_EVENT_NAME.USER_LOGIN}`)
   async initUser(@MessageBody("token") token: string, @ConnectedSocket() socket: Socket) {
     // 解析token, 
     const user = await this.jwtService.verifyAsync(
@@ -42,6 +41,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect{
     );
 
     socketMap[socket.id] = user.id;
+    Logger.log(`socket login:${ user.id } -- ${socket.id} `)
   }
 
   /**
@@ -53,9 +53,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect{
   async emit(userId: number, eventName: string, data: any): Promise<void> {
     const sockets = await this.server.of('').sockets;
     sockets.forEach(function (socket, sid) {
+      Logger.log(sid);
       if(userId == socketMap[sid]) {
+        Logger.log(`${userId} 将会收到事件(${eventName})`);
         const res =  sockets.get(sid).emit(eventName, data);
-        console.log("#emit: ", res);
       }
     })
   }
