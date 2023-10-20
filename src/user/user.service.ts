@@ -9,6 +9,7 @@ import config from '../../config/local'
 import { jwtConstants, redisConstants } from 'src/common/constants';
 import * as path from 'path';
 import * as fs from 'fs'
+import * as nodemailer from 'nodemailer'
 
 export type Message = {
   content: string;
@@ -27,6 +28,7 @@ export class UserService {
     private readonly redisService: RedisService,
     private readonly configService: ConfigService,
     private readonly socket: SocketGateway,
+    private readonly redis: RedisService
   ) { 
     let query = 'query' as never, info = 'info' as never, warn = 'warn' as never, error = 'error' as never;
     prisma.$on(query, (e)=>{
@@ -222,7 +224,7 @@ export class UserService {
     }
     const otherId = relation.sendId != userId ? relation.sendId: relation.receId;
     const otherUser = await this.prisma.et_user.findFirst({ where: { id: otherId }, select: { avatarUrl: true }});
-    return { otherId, avatarUrl: otherUser.avatarUrl, status: relation.status }
+    return { id: otherId, avatarUrl: otherUser.avatarUrl, status: relation.status }
   }
 
   /**
@@ -249,7 +251,7 @@ export class UserService {
     const sender = await this.prisma.et_user.findFirst({ where: { id: userId }, select: { username: true } })
     await this.prisma.et_message.create({
       data: {
-        userId: target.id, title: sender.username, content: `向你发送了好友申请`, data: '{}'
+        userId: target.id, title: sender.username, content: `向你发送了好友申请`, data: JSON.stringify({sendId: userId, receId: target.id})
       }
     })
     // 通知发送消息更新
@@ -262,8 +264,13 @@ export class UserService {
    * @param message 
    */
   async sendMessage(message: Message){
-    await this.prisma.et_chat.create({ data: message });
-    this.socket.emit
+    const res = await this.prisma.et_chat.create({ data: message });
+    const user = await this.prisma.et_user.findFirst({ where: { id: message.sendId }, select: { avatarUrl: true } })
+    res['avatarUrl']=user.avatarUrl;
+    // 通过socket 发送消息
+    this.socket.emit(message.sendId, SOCKET_EVENT_NAME.USER_CHAT_ADD, Object.assign({ isMe : true }, res))
+    this.socket.emit(message.receId, SOCKET_EVENT_NAME.USER_CHAT_ADD, Object.assign( { isMe : false }, res))
+    return res;
   }
 
   /**
@@ -283,4 +290,96 @@ export class UserService {
     // return { connected: true, otherUserId: otherUserId, userChatList };
   }
 
+  /**
+   *  发送邮箱验证码
+   */
+  async sendEmailCode(email: string) {
+    // 验证邮箱
+    if(!/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(email)){
+      throw new GoneException("邮箱格式不正确, 请确认后再发送");
+    }
+
+    const config = {
+      host: "smtp.163.com",
+      port: 465,
+      secure: true,
+      auth: {
+          user: "leekwe@163.com", // 发送方的邮箱地址
+          pass: "NJVSRCTBRERJZISC" // 此处填写你的邮箱授权码
+      }
+    };
+    let transporter = nodemailer.createTransport(config);
+
+    const from = "leekwe@163.com";
+    const code = ~~(Math.random()*10000)+1000;
+    let mailObj = {
+        from,
+        to: email,
+        subject: 'ET注册验证码',
+        text: `您的验证码为: ${code}`
+    }
+    await new Promise((resolve, reject) => {
+        transporter.sendMail(mailObj, async (err, info) => {
+            if (err) {
+                // new GoneException(err)
+                reject(err)
+            } else {
+                // cache code
+                const key = redisConstants.emailKeyPrefix+code;
+                const expire = 600;
+                await this.redis.setex(key, expire, '1');
+                resolve(info)
+            }
+        })
+    })
+  }
+
+  /**
+   * 邮箱登录
+   * @param email 邮箱
+   * @param code 验证码
+   */
+  async verifyCode(email: string, code: string): Promise<{ token: string; user: et_user}>{
+    // 校验验证码
+    const key = redisConstants.emailKeyPrefix+code;
+    const exist = await this.redis.getValue(key)
+    if(!exist) throw new GoneException("验证码错误");
+
+    let user = await this.prisma.et_user.findFirst({ where: { email: email }})
+    if(!user){
+      user = await this.prisma.et_user.create({ data: { email, eid: "ET" + ~~Math.abs(Math.random() * 100000000), username: 'ET用户', avatarUrl: 'http://192.168.20.221:3000/avatar/默认头像.png' } })
+    }
+    // 
+    const token = await this.jwtService.signAsync(user, { secret: jwtConstants.secret });
+    await this.redisService.setex(redisConstants.tokenKeyPrefix + token, jwtConstants.expiresIn, 1 + '');
+    // 获取当前用户信息
+    return { token, user };
+  }
+
+
+  /**
+   * 获取聊天记录列表
+   * @param id 用户id
+   * @param friendId 好友id
+   */
+  async chatList(id: number, friendId: number){
+    const res = await this.prisma.et_chat.findMany({
+      where: { OR: [
+        { sendId: id, receId: friendId },
+        { receId: id, sendId: friendId },
+      ]},
+    })
+    const usreList = await this.prisma.et_user.findMany({ select: { id: true, avatarUrl: true, username: true} ,where: { id: { in: [id, friendId]} } })
+    const userMap = usreList.reduce((pre,cur)=>Object.assign(pre, {[cur.id]: cur}), {})
+    
+    for(const chat of res){
+      chat['sender'] = userMap[chat.sendId]
+      chat['receer'] = userMap[chat.receId]
+      chat['isMe'] = chat.sendId == id;
+      chat['avatarUrl'] = chat['sender']['avatarUrl'];
+      delete chat['sender']
+      delete chat['receer']
+    }
+    return res;
+  }
 }
