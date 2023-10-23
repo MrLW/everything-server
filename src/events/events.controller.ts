@@ -9,13 +9,13 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) { }
 
   @Post()
-  create(@Body() createEventDto: CreateEventDto) {
-    return this.eventsService.create(createEventDto);
+  create(@Body() createEventDto: CreateEventDto, @Req() req) {
+    return this.eventsService.create(createEventDto, req.user.id);
   }
 
   @Get()
-  async findAll() {
-    const res = await this.eventsService.findAll();
+  async findAll(@Req() req) {
+    const res = await this.eventsService.findAll(req.user.id);
     return Ret.ok(res);
   }
 

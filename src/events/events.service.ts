@@ -10,15 +10,19 @@ export class EventsService {
 
   constructor(private prisma: PrismaService, private categoryService: RecordDayCategoryService) { }
 
-  async create(createEventDto: CreateEventDto) {
-    const res = await this.prisma.et_event.create({ data: createEventDto })
+  async create(createEventDto: CreateEventDto, userId: number) {
+    const res = await this.prisma.et_event.create({ data: Object.assign(createEventDto, { userId }) })
+    if(createEventDto.type == 'birthday'){
+      // 更新用户生日
+      await this.prisma.et_user.update({ where: { id: userId }, data: { birthday: createEventDto.startTime } })
+    }
     return res;
   }
 
-  async findAll() {
+  async findAll(userId: number) {
     const categoryMap = await this.categoryService.getCategoryMap()
     // 先排序, 再分组
-    const eventList: any = await this.prisma.$queryRaw`select * from (select * from et_event where deleted = 0 order by startTime desc limit 1000 ) tmp GROUP BY type`
+    const eventList: any = await this.prisma.$queryRaw`select * from (select * from et_event where deleted = 0 and userId = ${userId} order by startTime desc limit 1000 ) tmp GROUP BY type`
     for(let item of eventList){
       item['className'] = categoryMap[item.type].className;
       item['name'] = categoryMap[item.type].name;
@@ -45,8 +49,8 @@ export class EventsService {
    *  获取所有的姨妈日期
    */
   async findMenses(userId: number){
-    const user = await this.prisma.et_user.findFirst({ where: { id: userId } , select: { avatarUrl: true }})
-    const res = await this.prisma.et_event.findMany({ orderBy: { startTime: 'desc' } , where: { type: 'menses' }, select: { id: true, type: true, startTime: true } })
+    const user = await this.prisma.et_user.findFirst({ where: { id: userId, } , select: { avatarUrl: true }})
+    const res = await this.prisma.et_event.findMany({ orderBy: { startTime: 'desc', } , where: { type: 'menses', deleted: false, userId: userId }, select: { id: true, type: true, startTime: true } })
     let i = 0;
     for(; i<res.length-1; i++) {
       res[i]['diffDays'] = dayjs(res[i].startTime).diff(res[i+1].startTime, 'days');
