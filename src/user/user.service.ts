@@ -343,6 +343,7 @@ export class UserService {
     // 校验验证码
     const key = redisConstants.emailKeyPrefix+code;
     const exist = await this.redis.getValue(key)
+    Logger.log(`verify code exist: ${exist}`)
     if(!exist) throw new GoneException("验证码错误");
 
     let user = await this.prisma.et_user.findFirst({ where: { email: email }})
@@ -381,5 +382,43 @@ export class UserService {
       delete chat['receer']
     }
     return res;
+  }
+
+  async searchUsers(userId: number, keywork: string){
+    const res = await this.prisma.et_user.findMany({
+      where: {
+        eid: {
+          startsWith: `%${keywork}%`
+        }
+      },
+      select: { id: true, avatarUrl: true, username: true, eid: true }
+    })
+    const relationList = await this.prisma.et_user_relation.findMany({
+      where: {
+        sendId: userId
+      }
+    })
+    // 获取当前用户的关注id的列表
+    const set = new Set(relationList.map(item => item.receId))
+    res.forEach(item =>item['hasSub'] = set.has(item.id) )
+    return res;
+  }
+
+
+  /**
+   * 关注用户
+   * @param userId 发起关注的人
+   * @param friendId 被关注的人
+   */
+  async subscribe(userId: number, friendId: number) {
+    await this.prisma.et_user_relation.create({
+      data: {
+        sendId: userId,
+        receId: friendId, 
+        status: 'apply',
+        type: 'friend'
+      }
+    })
+    // TODO: 发送消息给被关注的人
   }
 }

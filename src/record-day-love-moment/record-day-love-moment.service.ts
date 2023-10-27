@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateRecordDayLoveMomentDto } from './dto/create-record-day-love-moment.dto';
 import { UpdateRecordDayLoveMomentDto } from './dto/update-record-day-love-moment.dto';
 import { PrismaService } from 'src/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
+import { FindRecordDayLoveMomentDto } from './dto/find-record-day-love-moment.dto';
 
 
 @Injectable()
@@ -15,17 +16,20 @@ export class RecordDayLoveMomentService {
     const imageKeyList: string[] = [];
     for(let image of createRecordDayLoveMomentDto.images){
       const key = '/moment/' + Date.now()+ '.jpg';
-      const localpath = path.join(__dirname,'../../public/',  key);
+      const localpath = path.join(__dirname,'../../../public/',  key); // TODO
       fs.writeFileSync(localpath, Buffer.from(image.replace(/^data:image\/\w+;base64,/, ''), 'base64'));
       imageKeyList.push(key);
     }
     return this.prisma.et_day_love_moment.create({ data: Object.assign(createRecordDayLoveMomentDto, { images: JSON.stringify(imageKeyList) })})
   }
 
-  async findAll(userId: number) {
+  async findAll(userId: number, req: FindRecordDayLoveMomentDto) {
     const domain = this.config.get("DOMAIN");
-
-    const res = await this.prisma.et_day_love_moment.findMany({ where: { public: true } });
+    const res = await this.prisma.et_day_love_moment.findMany({ 
+      where: { public: true },
+      skip: req.pageSize * (req.pageNum-1),
+      take: ~~req.pageSize
+    });
     const mappingList = await this.prisma.et_day_love_moment_love_mapping.findMany({ where: { type: 'love' , momentId: { in: res.map(item => item.id )} } })
     const mappingMap = mappingList.reduce((pre, cur) => Object.assign(pre, {[cur.momentId]: cur.userId }), {})
     for(let item of res){
