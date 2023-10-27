@@ -12,6 +12,18 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
 
+  @Get('/search')
+  async search(@Req() req, @Query('keyword') keyword: string){
+    const res = await this.userService.searchUsers(req.user.id,keyword)
+    return Ret.ok(res);
+  }
+
+  @Post('/subscribe')
+  async subscribe(@Req() req, @Body('friendId') friendId: number){
+    const res = await this.userService.subscribe(req.user.id,friendId)
+    return Ret.ok(res);
+  }
+
   @Post('/email/verify')
   @SkipAuth()
   async verifyCode(@Body("email") email: string, @Body("code") code: string){

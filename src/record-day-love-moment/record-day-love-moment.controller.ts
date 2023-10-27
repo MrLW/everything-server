@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query } from '@nestjs/common';
 import { RecordDayLoveMomentService } from './record-day-love-moment.service';
 import { CreateRecordDayLoveMomentDto } from './dto/create-record-day-love-moment.dto';
 import { UpdateRecordDayLoveMomentDto } from './dto/update-record-day-love-moment.dto';
 import { Ret } from 'src/common/ret';
+import { FindRecordDayLoveMomentDto } from './dto/find-record-day-love-moment.dto';
 
 @Controller('recordDayLoveMoment')
 export class RecordDayLoveMomentController {
@@ -15,8 +16,8 @@ export class RecordDayLoveMomentController {
   }
 
   @Get()
-  async  findAll(@Req() req) {
-    const res = await this.recordDayLoveMomentService.findAll(req.user.id);
+  async findAll(@Req() req, @Query() query: FindRecordDayLoveMomentDto) {
+    const res = await this.recordDayLoveMomentService.findAll(req.user.id, query);
     return Ret.ok(res);
   }
 
