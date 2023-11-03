@@ -20,6 +20,12 @@ export type Message = {
 import { ConfigService } from '@nestjs/config';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { SOCKET_EVENT_NAME } from 'src/socket/constant';
+import { UserChatItemList } from './dto/chat-list.dto';
+type Friend = {
+  id: number;
+  avatarUrl: string;
+  username: string;
+}
 
 @Injectable()
 export class UserService {
@@ -363,12 +369,18 @@ export class UserService {
    * @param id 用户id
    * @param friendId 好友id
    */
-  async chatList(id: number, friendId: number){
+  async chatList(id: number,  userChatItemListReq: UserChatItemList){
+    const friendId = ~~userChatItemListReq.friendId;
     const res = await this.prisma.et_chat.findMany({
       where: { OR: [
         { sendId: id, receId: friendId },
         { receId: id, sendId: friendId },
       ]},
+      take: ~~userChatItemListReq.pageSize,
+      skip: userChatItemListReq.pageSize * (userChatItemListReq.pageNum-1),
+      orderBy: {
+        createTime: 'desc'
+      }
     })
     const usreList = await this.prisma.et_user.findMany({ select: { id: true, avatarUrl: true, username: true} ,where: { id: { in: [id, friendId]} } })
     const userMap = usreList.reduce((pre,cur)=>Object.assign(pre, {[cur.id]: cur}), {})
@@ -381,6 +393,7 @@ export class UserService {
       delete chat['sender']
       delete chat['receer']
     }
+    res.sort((pre, cur) => pre.id - cur.id)
     return res;
   }
 
@@ -389,7 +402,8 @@ export class UserService {
       where: {
         eid: {
           startsWith: `%${keywork}%`
-        }
+        },
+        id: { not: userId}
       },
       select: { id: true, avatarUrl: true, username: true, eid: true }
     })
@@ -419,6 +433,48 @@ export class UserService {
         type: 'friend'
       }
     })
+    await this.prisma.et_user.update({ where: { id: userId }, data: { subs: { increment: 1 } } })
     // TODO: 发送消息给被关注的人
+  }
+
+  /**
+   * 获取好友列表
+   * @param userId 
+   */
+  async friends(userId: number) {
+    const relationList = await this.prisma.et_user_relation.findMany({
+      where: {
+        OR: [
+          { sendId: userId },
+          { receId: userId }
+        ],
+        type: 'friend',
+      },
+      include: {
+        'et_user_et_user_relation_receIdToet_user': {
+          select: { id: true, username: true, avatarUrl: true },
+        },
+        'et_user_et_user_relation_sendIdToet_user': {
+          select: { id: true, username: true, avatarUrl: true }
+        },
+      }
+    })
+    const friendList : Friend[]= [];
+    relationList.forEach(relation => {
+      const receer = relation.et_user_et_user_relation_receIdToet_user;
+      const sender = relation.et_user_et_user_relation_sendIdToet_user;
+
+      friendList.push(sender.id != userId ? sender: receer)
+    })
+    return friendList.filter(user=>user.id != userId);
+  }
+
+  /**
+   * 检查该socket id是否有效
+   * @param sid socket 的 id
+   */
+  async checkSocketValid(sid: string) {
+    const res = await this.socket.checkValid(sid);
+    return { isValid: res };
   }
 }

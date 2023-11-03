@@ -3,4 +3,5 @@ export class CreateRecordDayLoveMomentDto {
     public: boolean;
     title: string;
     images: string[];
+    userId?: number;
 }

@@ -6,11 +6,48 @@ import { Ret } from 'src/common/ret';
 import { AuthGuard } from './auth.guard';
 import { SkipAuth } from './metadata';
 import { extractTokenFromHeader } from 'src/utils';
+import { UserChatItemList } from './dto/chat-list.dto';
+import { RecordDayLoveMomentService } from 'src/record-day-love-moment/record-day-love-moment.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService, private readonly momentService: RecordDayLoveMomentService) {}
 
+  @Get('/lovemoment/love')
+  async loveLoveMoments(@Req() req){
+    const res = await this.momentService.loveLoveMoments(req.user.id, 'love')
+    return Ret.ok(res);
+  }
+
+  @Get('/lovemoment/star')
+  async starLoveMoments(@Req() req){
+    const res = await this.momentService.loveLoveMoments(req.user.id, 'star')
+    return Ret.ok(res);
+  }
+
+  @Get('/lovemoment/public')
+  async publicLoveMoments(@Req() req){
+    const res = await this.momentService.loveMoments(req.user.id, true)
+    return Ret.ok(res);
+  }
+
+  @Get('/lovemoment/private')
+  async privateLoveMoments(@Req() req){
+    const res = await this.momentService.loveMoments(req.user.id, false)
+    return Ret.ok(res);
+  }
+
+  @Post('/checkSocket')
+  async checkSocket(@Body("sid") sid: string ){
+    const res = await this.userService.checkSocketValid(sid)
+    return Ret.ok(res);
+  }
+
+  @Get('/friends')
+  async friends(@Req() req){
+    const res = await this.userService.friends(req.user.id)
+    return Ret.ok(res);
+  }
 
   @Get('/search')
   async search(@Req() req, @Query('keyword') keyword: string){
@@ -41,13 +78,13 @@ export class UserController {
   @Post('/chat')
   async createChat(@Req() req, @Body() message: Message ){
     message.sendId = req.user.id;
-    await this.userService.sendMessage(message);
-    return Ret.ok();
+    const res = await this.userService.sendMessage(message);
+    return Ret.ok(res);
   }
 
   @Get('/chat')
-  async chatList(@Req() req, @Query("friendId") friendId: string){
-    const res = await this.userService.chatList(req.user.id, ~~friendId);
+  async chatList(@Req() req, @Query() userList: UserChatItemList){
+    const res = await this.userService.chatList(req.user.id, userList);
     return Ret.ok(res);
   }
 

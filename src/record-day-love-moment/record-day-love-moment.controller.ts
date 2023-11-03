@@ -10,7 +10,8 @@ export class RecordDayLoveMomentController {
   constructor(private readonly recordDayLoveMomentService: RecordDayLoveMomentService) {}
 
   @Post()
-  async  create(@Body() createRecordDayLoveMomentDto: CreateRecordDayLoveMomentDto) {
+  async  create(@Body() createRecordDayLoveMomentDto: CreateRecordDayLoveMomentDto, @Req() req) {
+    createRecordDayLoveMomentDto.userId = req.user.id;
     const res = await this.recordDayLoveMomentService.create(createRecordDayLoveMomentDto);
     return Ret.ok(res);
   }
@@ -24,18 +25,6 @@ export class RecordDayLoveMomentController {
   @Get(':id')
   async  findOne(@Param('id') id: string, @Req() req) {
     const res = await  this.recordDayLoveMomentService.findOne(+id,req.user.id);
-    return Ret.ok(res)
-  }
-
-  @Patch(':id')
-  async  update(@Param('id') id: string, @Body() updateRecordDayLoveMomentDto: UpdateRecordDayLoveMomentDto) {
-    const res = await  this.recordDayLoveMomentService.update(+id, updateRecordDayLoveMomentDto);
-    return Ret.ok(res)
-  }
-
-  @Delete(':id')
-   async remove(@Param('id') id: string) {
-    const res = await  this.recordDayLoveMomentService.remove(+id);
     return Ret.ok(res)
   }
 

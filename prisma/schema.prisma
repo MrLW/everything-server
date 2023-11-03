@@ -44,15 +44,11 @@ model et_day_love_moment {
   images                     String                       @db.Text
   public                     Boolean                      @default(false)
   createTime                 DateTime                     @default(now()) @db.Timestamp(0)
+  et_user                    et_user                      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "et_publisher")
   et_day_love_moment_comment et_day_love_moment_comment[]
-}
+  et_day_love_moment_mapping et_day_love_moment_mapping[]
 
-model et_day_love_moment_love_mapping {
-  id         Int                                  @id @default(autoincrement())
-  userId     Int
-  momentId   Int
-  type       et_day_love_moment_love_mapping_type @default(love)
-  createTime DateTime                             @default(now()) @db.Timestamp(0)
+  @@index([userId], map: "et_publisher")
 }
 
 model et_day_love_moment_comment {
@@ -69,26 +65,30 @@ model et_day_love_moment_comment {
 }
 
 model et_user {
-  id                         Int                          @id @default(autoincrement())
-  eid                        String                       @default("") @db.VarChar(32)
-  email                      String                       @default("") @db.VarChar(64)
-  username                   String                       @default("") @db.VarChar(16)
-  avatarUrl                  String                       @default("") @db.VarChar(256)
-  sex                        Int                          @default(0)
-  openid                     String                       @default("") @db.VarChar(64)
-  country                    String                       @default("") @db.VarChar(16)
-  province                   String                       @default("") @db.VarChar(16)
-  city                       String                       @default("") @db.VarChar(16)
-  district                   String                       @default("") @db.VarChar(16)
-  exps                       Int                          @default(0)
-  loves                      Int                          @default(0)
-  subs                       Int                          @default(0)
-  birthday                   String                       @default("") @db.VarChar(16)
-  desc                       String                       @default("") @db.VarChar(512)
-  createTime                 DateTime                     @default(now()) @db.Timestamp(0)
-  et_chat                    et_chat[]
-  et_day_love_moment_comment et_day_love_moment_comment[]
-  et_message                 et_message[]
+  id                                                Int                          @id @default(autoincrement())
+  eid                                               String                       @default("") @db.VarChar(32)
+  email                                             String                       @default("") @db.VarChar(64)
+  username                                          String                       @default("") @db.VarChar(16)
+  avatarUrl                                         String                       @default("") @db.VarChar(256)
+  sex                                               Int                          @default(0)
+  openid                                            String                       @default("") @db.VarChar(64)
+  country                                           String                       @default("") @db.VarChar(16)
+  province                                          String                       @default("") @db.VarChar(16)
+  city                                              String                       @default("") @db.VarChar(16)
+  district                                          String                       @default("") @db.VarChar(16)
+  exps                                              Int                          @default(0)
+  loves                                             Int                          @default(0)
+  subs                                              Int                          @default(0)
+  collects                                          Int                          @default(0)
+  birthday                                          String                       @default("") @db.VarChar(16)
+  desc                                              String                       @default("") @db.VarChar(512)
+  createTime                                        DateTime                     @default(now()) @db.Timestamp(0)
+  et_chat                                           et_chat[]
+  et_day_love_moment                                et_day_love_moment[]
+  et_day_love_moment_comment                        et_day_love_moment_comment[]
+  et_message                                        et_message[]
+  et_user_relation_et_user_relation_receIdToet_user et_user_relation[]           @relation("et_user_relation_receIdToet_user")
+  et_user_relation_et_user_relation_sendIdToet_user et_user_relation[]           @relation("et_user_relation_sendIdToet_user")
 
   @@index([eid], map: "eid")
 }
@@ -157,19 +157,21 @@ model et_chat {
   createTime DateTime @default(now()) @db.Timestamp(0)
   et_user    et_user  @relation(fields: [receId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "recvId")
 
-  @@index([receId], map: "sendId")
+  @@index([receId], map: "receId")
 }
 
 model et_user_relation {
-  id         Int                      @id @default(autoincrement())
-  sendId     Int
-  receId     Int
-  type       et_user_relation_type    @default(friend)
-  status     et_user_relation_status? @default(apply)
-  createTime DateTime                 @default(now()) @db.Timestamp(0)
+  id                                       Int                      @id @default(autoincrement())
+  sendId                                   Int
+  receId                                   Int
+  type                                     et_user_relation_type    @default(friend)
+  status                                   et_user_relation_status? @default(apply)
+  createTime                               DateTime                 @default(now()) @db.Timestamp(0)
+  et_user_et_user_relation_receIdToet_user et_user                  @relation("et_user_relation_receIdToet_user", fields: [receId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "et_receer")
+  et_user_et_user_relation_sendIdToet_user et_user                  @relation("et_user_relation_sendIdToet_user", fields: [sendId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "et_sender")
 
-  @@index([sendId], map: "a")
-  @@index([receId], map: "b")
+  @@index([receId], map: "et_receer")
+  @@index([sendId], map: "et_sender")
 }
 
 model et_message {
@@ -183,6 +185,17 @@ model et_message {
   et_user    et_user           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "et_user")
 
   @@index([userId], map: "et_user")
+}
+
+model et_day_love_moment_mapping {
+  id                 Int                             @id @default(autoincrement())
+  userId             Int
+  momentId           Int
+  type               et_day_love_moment_mapping_type @default(love)
+  createTime         DateTime                        @default(now()) @db.Timestamp(0)
+  et_day_love_moment et_day_love_moment              @relation(fields: [momentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "moment")
+
+  @@index([momentId], map: "moment")
 }
 
 enum et_event_type {
@@ -200,11 +213,6 @@ enum et_day_category_type {
   deathday
 }
 
-enum et_day_love_moment_love_mapping_type {
-  love
-  star
-}
-
 enum et_user_relation_type {
   friend
   love
@@ -220,4 +228,9 @@ enum et_message_status {
   unread
   read
   complete
+}
+
+enum et_day_love_moment_mapping_type {
+  love
+  star
 }

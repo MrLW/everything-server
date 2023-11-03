@@ -60,4 +60,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect{
       }
     })
   }
+  
+  /**
+   * 检查socket id 是否生效
+   * @param sid socket 的id
+   * @returns 
+   */
+  async checkValid(sid: string) {
+    const sids = await this.server.of('').sockets.keys()
+    return new Set(sids).has(sid)
+  }
 }
