@@ -56,7 +56,9 @@ export class EventsService {
       res[i]['diffDays'] = dayjs(res[i].startTime).diff(res[i+1].startTime, 'days');
       res[i]['avatarUrl'] = user.avatarUrl;
     }
-    res[i]['avatarUrl'] = user.avatarUrl;
+    if(res[i]){
+      res[i]['avatarUrl'] = user.avatarUrl;
+    }
     return res;
   }
 }
