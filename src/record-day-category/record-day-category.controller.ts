@@ -15,8 +15,8 @@ export class RecordDayCategoryController {
   }
 
   @Get()
-  async findAll() {
-    const res = await this.recordDayCategoryService.findAll();
+  async findAll(@Req() req) {
+    const res = await this.recordDayCategoryService.findAll(req.user.id);
     return Ret.ok(res);
   }
 

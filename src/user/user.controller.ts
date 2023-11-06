@@ -13,6 +13,18 @@ import { RecordDayLoveMomentService } from 'src/record-day-love-moment/record-da
 export class UserController {
   constructor(private readonly userService: UserService, private readonly momentService: RecordDayLoveMomentService) {}
 
+  @Get('/contacts')
+  async contacts(@Req() req){
+    const res = await this.userService.contacts(req.user.id);
+    return Ret.ok(res);
+  }
+
+  @Get('/lovemoment/friend')
+  async friendLoveMoments(@Req() req, @Query('friendId') friendId: number){
+    const res = await this.momentService.friendLoveMoments(req.user.id, ~~friendId)
+    return Ret.ok(res);
+  }
+  
   @Get('/lovemoment/love')
   async loveLoveMoments(@Req() req){
     const res = await this.momentService.loveLoveMoments(req.user.id, 'love')

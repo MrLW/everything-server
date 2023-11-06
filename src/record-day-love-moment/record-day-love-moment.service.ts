@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateRecordDayLoveMomentDto } from './dto/create-record-day-love-moment.dto';
 import { UpdateRecordDayLoveMomentDto } from './dto/update-record-day-love-moment.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -26,17 +26,17 @@ export class RecordDayLoveMomentService {
   }
 
   async findAll(userId: number, req: FindRecordDayLoveMomentDto) {
-    const domain = this.config.get("DOMAIN");
     const res = await this.prisma.et_day_love_moment.findMany({ 
       where: { public: true },
       skip: req.pageSize * (req.pageNum-1),
-      take: ~~req.pageSize
+      take: ~~req.pageSize,
+      include: { et_user:  true, }
     });
     const mappingList = await this.prisma.et_day_love_moment_mapping.findMany({ where: { type: 'love' , momentId: { in: res.map(item => item.id )} } })
     const mappingMap = mappingList.reduce((pre, cur) => Object.assign(pre, {[cur.momentId]: cur.userId }), {})
     for(let item of res){
       const images = JSON.parse(item.images) as string[];
-      item['cover'] = images.length > 0 ? domain + images[0]: 'https://web-assets.dcloud.net.cn/unidoc/zh/shuijiao.jpg';
+      item['cover'] = images.length > 0 ? this.domain + images[0]: 'https://web-assets.dcloud.net.cn/unidoc/zh/shuijiao.jpg';
       // 判断当前用户是否喜欢瞬间
       item['loved'] = userId == mappingMap[item.id];
     }
@@ -161,6 +161,30 @@ export class RecordDayLoveMomentService {
       const images = JSON.parse(item.images) as string[];
       item['cover'] = images.length > 0 ? this.domain + images[0]: 'https://web-assets.dcloud.net.cn/unidoc/zh/shuijiao.jpg';
       item['loved'] = true;
+    }
+    return momentList;
+  }
+
+  /**
+   * 获取好友的瞬间
+   * @param friendId 
+   */
+  async friendLoveMoments(userId: number, friendId: number) {
+    const momentList = await this.prisma.et_day_love_moment.findMany({
+      where: { userId: friendId },
+      include: {
+        et_user: {
+          select: { id: true, avatarUrl: true, username: true }
+        }
+      }
+    })
+    const mappingList = await this.prisma.et_day_love_moment_mapping.findMany({ where: { type: 'love' , momentId: { in: momentList.map(item => item.id )} } })
+    const mappingMap = mappingList.reduce((pre, cur) => Object.assign(pre, {[cur.momentId]: cur.userId }), {})
+    for(let item of momentList){
+      const images = JSON.parse(item.images) as string[];
+      item['cover'] = images.length > 0 ? this.domain + images[0]: 'https://web-assets.dcloud.net.cn/unidoc/zh/shuijiao.jpg';
+       // 判断当前用户是否喜欢瞬间
+       item['loved'] = userId == mappingMap[item.id];
     }
     return momentList;
   }

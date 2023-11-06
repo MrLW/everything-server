@@ -477,4 +477,33 @@ export class UserService {
     const res = await this.socket.checkValid(sid);
     return { isValid: res };
   }
+
+  /**
+   * 根据用户id获取当前用户的联系人
+   * @param userId 用户id
+   */
+  async contacts(userId: number){
+    const relations = await this.prisma.et_user_relation.findMany({
+      where: {
+        OR: [
+          { sendId: userId},
+          { receId: userId },
+        ],
+        type: 'friend',
+        status: 'success',
+      },
+      include: {
+        'et_user_et_user_relation_receIdToet_user': {
+          select: { avatarUrl: true, id: true, },
+        },
+        'et_user_et_user_relation_sendIdToet_user': {
+          select: { avatarUrl: true, id: true }
+        }
+      }
+    })
+    const users = relations.map(relation => {
+      return relation.et_user_et_user_relation_receIdToet_user.id == userId ? relation.et_user_et_user_relation_sendIdToet_user: relation.et_user_et_user_relation_receIdToet_user
+    })
+    return users;
+  }
 }
