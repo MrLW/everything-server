@@ -21,6 +21,7 @@ import { ConfigService } from '@nestjs/config';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { SOCKET_EVENT_NAME } from 'src/socket/constant';
 import { UserChatItemList } from './dto/chat-list.dto';
+import { MessageService } from 'src/message/message.service';
 type Friend = {
   id: number;
   avatarUrl: string;
@@ -34,7 +35,8 @@ export class UserService {
     private readonly redisService: RedisService,
     private readonly configService: ConfigService,
     private readonly socket: SocketGateway,
-    private readonly redis: RedisService
+    private readonly redis: RedisService,
+    private readonly messageService: MessageService
   ) { 
     let query = 'query' as never, info = 'info' as never, warn = 'warn' as never, error = 'error' as never;
     prisma.$on(query, (e)=>{
@@ -217,6 +219,16 @@ export class UserService {
   }
 
   /**
+  * 更新生日
+  * @param userId 用户id
+  * @param birthday 用户生日
+  */
+  async updateBirthday(userId: number, birthday: string) {
+    await this.prisma.et_user.update({ where: { id: userId }, data: { birthday } })
+    return true;
+  }
+
+  /**
    * 获取该用户的伴侣
    * @param userId 用户id
    * @returns otherId 伴侣id
@@ -275,7 +287,9 @@ export class UserService {
     res['avatarUrl']=user.avatarUrl;
     // 通过socket 发送消息
     this.socket.emit(message.sendId, SOCKET_EVENT_NAME.USER_CHAT_ADD, Object.assign({ isMe : true }, res))
+    this.socket.emit(message.sendId, SOCKET_EVENT_NAME.USER_CHAT_UPDATE_INTOVIEW, { id: res.id })
     this.socket.emit(message.receId, SOCKET_EVENT_NAME.USER_CHAT_ADD, Object.assign( { isMe : false }, res))
+    this.socket.emit(message.receId, SOCKET_EVENT_NAME.USER_CHAT_UPDATE_INTOVIEW, { id: res.id ,})
     return res;
   }
 
@@ -317,7 +331,7 @@ export class UserService {
     let transporter = nodemailer.createTransport(config);
 
     const from = "leekwe@163.com";
-    const code = ~~(Math.random()*10000)+1000;
+    const code =  Math.floor(Math.random() * 9000 + 1000); 
     let mailObj = {
         from,
         to: email,
@@ -434,11 +448,12 @@ export class UserService {
       }
     })
     await this.prisma.et_user.update({ where: { id: userId }, data: { subs: { increment: 1 } } })
-    // TODO: 发送消息给被关注的人
+    await this.messageService.createMessage(friendId, userId)
+    await this.socket.emit(friendId, SOCKET_EVENT_NAME.USER_FRIEND_APPLY, { userId });
   }
 
   /**
-   * 获取好友列表
+   * 获取关注我的用户 或者 我关注的用户 的列表
    * @param userId 
    */
   async friends(userId: number) {
@@ -492,6 +507,7 @@ export class UserService {
         type: 'friend',
         status: 'success',
       },
+      
       include: {
         'et_user_et_user_relation_receIdToet_user': {
           select: { avatarUrl: true, id: true, },

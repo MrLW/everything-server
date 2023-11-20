@@ -155,6 +155,7 @@ model et_chat {
   receId     Int
   content    String   @default("") @db.VarChar(128)
   createTime DateTime @default(now()) @db.Timestamp(0)
+  deleted    Boolean  @default(false)
   et_user    et_user  @relation(fields: [receId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "recvId")
 
   @@index([receId], map: "receId")

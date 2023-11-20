@@ -48,4 +48,19 @@ export class MessageService {
   remove(id: number) {
     return `This action removes a #${id} message`;
   }
+
+  /**
+   * 创建消息
+   * @param userId 接收人id
+   * @param sendId 发送人id
+   * @param content 消息内容
+   */
+  async createMessage(userId: number, sendId: number, content:string ='向你发送了好友申请'){
+    const sender = await this.prisma.et_user.findFirst({ where: { id: sendId }, select: { username: true } })
+    await this.prisma.et_message.create({
+      data: {
+        userId, title: sender.username, content, data: JSON.stringify({sendId , receId: userId})
+      }
+    })
+  }
 }

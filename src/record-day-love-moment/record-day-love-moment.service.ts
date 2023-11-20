@@ -105,7 +105,7 @@ export class RecordDayLoveMomentService {
     await this.prisma.et_user.update({
       where: { id: userId },
       data: {
-        loves: { increment: incre }
+        collects: { increment: incre }
       }
     })
   }
@@ -114,7 +114,7 @@ export class RecordDayLoveMomentService {
    * 获取用户的瞬间
    * @param userId 用户id
    */
-  async loveMoments(userId: number, ispublic: boolean){
+  async loveMoments(userId: number, ispublic: boolean, query: { pageSize: number, pageNum: number}){
     const res = await this.prisma.et_day_love_moment.findMany({
       where: { userId , public:  ispublic },
       include: {
@@ -125,6 +125,8 @@ export class RecordDayLoveMomentService {
           }
         },
       },
+      skip: ~~query.pageSize*(query.pageNum-1) || 0,
+      take: ~~query.pageSize || 8,
     })
     const mappingList = await this.prisma.et_day_love_moment_mapping.findMany({ where: { type: 'love' , momentId: { in: res.map(item => item.id )} } })
     const mappingMap = mappingList.reduce((pre, cur) => Object.assign(pre, {[cur.momentId]: cur.userId }), {})
@@ -142,7 +144,7 @@ export class RecordDayLoveMomentService {
    * @param userId 用户id
    * @param type 类型
    */
-  async loveLoveMoments(userId: number, type: 'love' | 'star'){
+  async loveLoveMoments(userId: number, type: 'love' | 'star', query: { pageNum: number, pageSize: number}){
     const mappingList = await this.prisma.et_day_love_moment_mapping.findMany({
       where: {
         userId,
@@ -154,7 +156,9 @@ export class RecordDayLoveMomentService {
             et_user: true,
           }
         }
-      }
+      },
+      skip: ~~query.pageSize * (query.pageNum - 1) || 0,
+      take: ~~query.pageSize || 8,
     })
     const momentList = mappingList.map(mapping => mapping.et_day_love_moment);
     for(let item of momentList){

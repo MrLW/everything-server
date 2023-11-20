@@ -8,10 +8,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { RecordDayLoveMomentService } from 'src/record-day-love-moment/record-day-love-moment.service';
+import { MessageService } from 'src/message/message.service';
 
 
 @Module({
   controllers: [UserController],
-  providers: [UserService, PrismaService, JwtService, RedisService, SocketGateway, RecordDayLoveMomentService],
+  providers: [UserService, PrismaService, JwtService, RedisService, SocketGateway, RecordDayLoveMomentService, MessageService],
 })
 export class UserModule {}
