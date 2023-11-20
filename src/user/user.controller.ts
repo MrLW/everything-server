@@ -26,26 +26,26 @@ export class UserController {
   }
   
   @Get('/lovemoment/love')
-  async loveLoveMoments(@Req() req){
-    const res = await this.momentService.loveLoveMoments(req.user.id, 'love')
+  async loveLoveMoments(@Req() req, @Query() query){
+    const res = await this.momentService.loveLoveMoments(req.user.id, 'love', query)
     return Ret.ok(res);
   }
 
   @Get('/lovemoment/star')
-  async starLoveMoments(@Req() req){
-    const res = await this.momentService.loveLoveMoments(req.user.id, 'star')
+  async starLoveMoments(@Req() req, @Query() query){
+    const res = await this.momentService.loveLoveMoments(req.user.id, 'star', query)
     return Ret.ok(res);
   }
 
   @Get('/lovemoment/public')
-  async publicLoveMoments(@Req() req){
-    const res = await this.momentService.loveMoments(req.user.id, true)
+  async publicLoveMoments(@Req() req, @Query() query){
+    const res = await this.momentService.loveMoments(req.user.id, true, query)
     return Ret.ok(res);
   }
 
   @Get('/lovemoment/private')
-  async privateLoveMoments(@Req() req){
-    const res = await this.momentService.loveMoments(req.user.id, false)
+  async privateLoveMoments(@Req() req, @Query() query){
+    const res = await this.momentService.loveMoments(req.user.id, false, query)
     return Ret.ok(res);
   }
 
@@ -112,6 +112,12 @@ export class UserController {
     return Ret.ok(res)
   }
 
+  @Post('/updateBirthday')
+  async updateBirthday(@Body("birthday") birthday: string, @Req() req ){
+    await this.userService.updateBirthday(req.user.id , birthday);
+    return Ret.ok()
+  }
+
   @Post('/updateSex')
   async updateSex(@Body("sex") sex: number, @Req() req ){
     const success = await this.userService.updateSex(req.user.id , sex);
@@ -121,7 +127,7 @@ export class UserController {
   @Post('/updateEid')
   async updateEid(@Body("eid") eid: string, @Req() req ){
     const success = await this.userService.updateEid(req.user.id , eid);
-    return success ? Ret.ok(): Ret.fail("该EID已存在");
+    return  Ret.ok();
   }
 
   @Post('/updateUsername')
