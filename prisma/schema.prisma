@@ -199,6 +199,20 @@ model et_day_love_moment_mapping {
   @@index([momentId], map: "moment")
 }
 
+model et_todo {
+  id               Int      @id @default(autoincrement())
+  title            String   @db.VarChar(64)
+  content          String   @db.Text
+  userId           Int
+  done             Boolean  @default(false)
+  deleted          Boolean  @default(false)
+  duration         Int
+  startDay         String   @default("") @db.VarChar(16)
+  startTime        String   @default("") @db.VarChar(8)
+  createTime       DateTime @default(now()) @db.Timestamp(0)
+  lastModifiedTime DateTime @default(now()) @db.Timestamp(0)
+}
+
 enum et_event_type {
   marry
   love

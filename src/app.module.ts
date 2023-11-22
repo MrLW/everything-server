@@ -18,6 +18,7 @@ import { AuthGuard } from './user/auth.guard';
 import { AreaModule } from './area/area.module';
 import { MessageModule } from './message/message.module';
 import { SocketModule } from './socket/socket.module';
+import { RecordTodoModule } from './record-todo/record-todo.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -35,7 +36,8 @@ import { SocketModule } from './socket/socket.module';
     RedisModule,
     AreaModule,
     MessageModule,
-    SocketModule
+    SocketModule,
+    RecordTodoModule
   ],
   controllers: [AppController],
   providers: [AppService, 
