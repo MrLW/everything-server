@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="anonymous"></script>
+    <script>
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZWlkIjoiYXNkZmEiLCJ1c2VybmFtZSI6Imx3NCIsImF2YXRhclVybCI6Imh0dHA6Ly8xOTIuMTY4LjIwLjIyMTozMDAwL2F2YXRhci8xNjk2OTAyODU0ODU3LmpwZyIsInNleCI6MCwib3BlbmlkIjoib2ZhcUU1WjZFZjdFTjJ4MC1WQjBvMjVvTDNYdyIsImNvdW50cnkiOiIiLCJwcm92aW5jZSI6IjEyMDAwMCIsImNpdHkiOiIxMjAxMDAiLCJkaXN0cmljdCI6IjEyMDExMSIsImV4cHMiOjAsImxvdmVzIjoyLCJzdWJzIjowLCJiaXJ0aGRheSI6IiIsImRlc2MiOiLov5nmmK_miJHnmoRldOi0puWPt1xu6LCi6LCi5YWz5rOoISEhIiwiY3JlYXRlVGltZSI6IjIwMjMtMTAtMTFUMjI6Mzg6MTYuMDAwWiIsImlhdCI6MTY5NzQzMzI0Nn0.xJXAgpaQwqLMW-LfAPkboPf-8nx1q_G7CoSs6JIZUno";
+
+      const socket = io('http://localhost:3001?token='+token);
+      socket.on('connect', function() {
+        console.log('Connected');
+        socket.emit('/user/init', { token: token });
+        socket.emit('identity', 0, response =>
+          console.log('Identity:', response),
+        );
+      });
+      socket.on('events', function(data) {
+        console.log('event', data);
+      });
+      socket.on('exception', function(data) {
+        console.log('event', data);
+      });
+      socket.on('disconnect', function() {
+        console.log('Disconnected');
+      });
+    </script>
+  </head>
+
+  <body></body>
+</html>
